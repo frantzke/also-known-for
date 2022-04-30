@@ -29,31 +29,36 @@
     <v-divider dark class="my-4 primary" />
 
     <v-row no-gutters>
-      <v-col
-        cols="12"
-        v-for="star in stars"
-        :key="star.id"
-        @click="onClick(star.id)"
-      >
+      <v-col cols="12" v-for="star in stars" :key="star.id">
         <v-hover v-slot="{ hover }">
           <div class="d-flex py-4" :class="{ 'on-hover': hover }">
-            <div>
+            <div class="actor-container" @click="onClickActor(star.id)">
               <img
                 :src="star.image"
                 :alt="star.name"
-                width="120"
-                height="180"
+                width="140"
+                height="210"
               />
-              <p>{{ star.name }}</p>
+              <p class="mb-0 text-subtitle-1">{{ star.name }}</p>
             </div>
-            <img
+            <v-divider dark vertical class="mx-2 primary" />
+            <div
+              class="known-for-container mx-2"
               v-for="kfor in star.knownFor"
               :key="kfor.id"
-              :src="kfor.image"
-              :alt="kfor.title"
-              width="100"
-              height="150"
-            />
+              @click="onClickTitle(kfor.id)"
+            >
+              <img
+                :src="kfor.image"
+                :alt="kfor.title"
+                width="140"
+                height="210"
+              />
+              <p class="mb-0 text-subtitle-1">{{ kfor.title }}</p>
+              <p class="mb-0 text-body-1 font-weight-light">
+                As {{ kfor.role }}
+              </p>
+            </div>
           </div>
         </v-hover>
 
@@ -64,20 +69,21 @@
 </template>
 
 <script>
+import mockData from "@/helpers/mockData";
+
 export default {
   name: "TitlePage",
   data() {
     return {
       title: {},
-      actors: [],
-      image: "",
       stars: [],
       hasMaxRequests: false,
     };
   },
   computed: {},
   created() {
-    this.init();
+    // this.init();
+    this.getMockData();
   },
   methods: {
     async init() {
@@ -92,19 +98,17 @@ export default {
       console.log("Title:", title);
 
       this.title = title;
-      this.actors = title.actorList;
-      // this.stars = title.starList;
-      this.image = title.image;
 
       if (title.starList === null) {
         //Max requests reached for today
         this.hasMaxRequests = true;
       }
 
+      // const starId = title.starList[0].id;
+      // const promises = [this.getActor(starId)];
       const promises = title.starList.map((star) => {
         return this.getActor(star.id);
       });
-
       const actorResults = await Promise.all(promises);
       console.log("actorResults: ", actorResults);
       this.stars = actorResults;
@@ -119,8 +123,18 @@ export default {
       });
       return actor;
     },
-    onClick(id) {
+    getMockData() {
+      const { title, stars } = mockData();
+      // console.log("title: ", title);
+      this.title = title;
+      this.stars = stars;
+      console.log(stars);
+    },
+    onClickActor(id) {
       this.$router.push(`/actor/${id}`);
+    },
+    onClickTitle(id) {
+      this.$router.push(`/title/${id}`);
     },
   },
 };
@@ -133,5 +147,13 @@ export default {
 
 .on-hover {
   background-color: #272727;
+}
+
+.actor-container {
+  max-width: 140px;
+}
+
+.known-for-container {
+  max-width: 140px;
 }
 </style>
