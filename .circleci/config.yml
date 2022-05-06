@@ -1,4 +1,7 @@
-version: 2
+version: 2.1
+
+orbs:
+  heroku: circleci/heroku@1.2.6
 
 jobs:
   ci:
@@ -33,5 +36,25 @@ workflows:
           filters:
             branches:
               only:
+                - main
+                - master
+  heroku_deploy:
+    jobs:
+      -ci:
+          filters:
+            branches:
+              only:
+                - main
+                - master
+      - hold:
+          type: approval
+          requires:
+            - ci
+      - heroku/deploy-via-git: # Use the pre-configured job, deploy-via-git
+          requires:
+            - hold
+          filters:
+            branches:
+              only: 
                 - main
                 - master
