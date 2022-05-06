@@ -68,6 +68,7 @@
 
 <script>
 import mockData from "@/helpers/mockData";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "ActorPage",
@@ -78,35 +79,30 @@ export default {
       movies: [],
     };
   },
-  computed: {},
+  computed: {
+    // ...mapGetters(["actor"]),
+  },
   created() {
-    // this.init();
-    const { stars } = mockData();
-    this.actor = stars[1];
-    console.log("this.actor: ", this.actor);
-    this.movies = this.actor.castMovies.slice(0, 10);
+    this.init();
+    // this.getMockData();
   },
   methods: {
+    ...mapActions(["fetchActor"]),
     async init() {
       //Load title data
       const actorId = this.$route.params.id;
-      const actor = await fetch(
-        `https://imdb-api.com/en/API/Name/k_di6us43c/${encodeURIComponent(
-          actorId
-        )}`
-      ).then(async (response) => {
-        return await response.json();
-      });
-      // const actor = await response.json();
-      // console.log(actor);
+      //TODO: Handle Error & max requests
+      //TODO: Use Vuex store instead of returning actor obj
+      const actor = await this.fetchActor({ actorId });
       this.actor = actor;
-      if (actor.knownFors === null) {
-        this.hasMaxRequests = true;
-      }
-
       this.movies = this.actor.castMovies.slice(0, 10);
 
       this.knownFors = actor.knownFor;
+    },
+    getMockData() {
+      const { stars } = mockData();
+      this.actor = stars[1];
+      this.movies = this.actor.castMovies.slice(0, 10);
     },
     onClickTitle(id) {
       this.$router.push(`/title/${id}`);

@@ -70,62 +70,43 @@
 
 <script>
 import mockData from "@/helpers/mockData";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "TitlePage",
   data() {
     return {
-      title: {},
       stars: [],
       hasMaxRequests: false,
     };
   },
-  computed: {},
+  computed: {
+    ...mapGetters(["title"]),
+  },
   created() {
-    // this.init();
-    this.getMockData();
+    this.init();
+    // this.getMockData();
   },
   methods: {
+    ...mapActions(["fetchTitle", "fetchActor"]),
     async init() {
       //Load title data
       const titleId = this.$route.params.id;
-      const response = await fetch(
-        `https://imdb-api.com/en/API/Title/k_di6us43c/${encodeURIComponent(
-          titleId
-        )}`
-      );
-      const title = await response.json();
-      console.log("Title:", title);
+      //TODO: Handle error and max requests
+      await this.fetchTitle({ titleId });
 
-      this.title = title;
+      //TODO: Temporarily only fetch one star
+      const starList = [this.title.starList[0]];
 
-      if (title.starList === null) {
-        //Max requests reached for today
-        this.hasMaxRequests = true;
-      }
-
-      // const starId = title.starList[0].id;
-      // const promises = [this.getActor(starId)];
-      const promises = title.starList.map((star) => {
-        return this.getActor(star.id);
+      //TODO: Move this into a Vuex action
+      const promises = starList.map((star) => {
+        return this.fetchActor({ actorId: star.id });
       });
       const actorResults = await Promise.all(promises);
-      console.log("actorResults: ", actorResults);
       this.stars = actorResults;
-    },
-    async getActor(actorId) {
-      const actor = await fetch(
-        `https://imdb-api.com/en/API/Name/k_di6us43c/${encodeURIComponent(
-          actorId
-        )}`
-      ).then(async (response) => {
-        return await response.json();
-      });
-      return actor;
     },
     getMockData() {
       const { title, stars } = mockData();
-      // console.log("title: ", title);
       this.title = title;
       this.stars = stars;
       console.log(stars);

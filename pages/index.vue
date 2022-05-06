@@ -3,7 +3,7 @@
     <div class="d-flex">
       <v-text-field
         placeholder="Search for Movies or TV Shows"
-        v-model="title"
+        v-model="searchText"
         required
         solo
         @keyup.enter="onSearch"
@@ -45,32 +45,24 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
+
 export default {
   name: "IndexPage",
   data: () => ({
     isLoading: false,
-    title: "",
-    titles: [],
+    searchText: "",
     hasMaxRequests: false,
   }),
+  computed: {
+    ...mapGetters(["titles"]),
+  },
   methods: {
+    ...mapActions(["fetchTitles"]),
     async onSearch() {
-      //TODO: Handle error
+      //TODO: Handle error & max requests
       this.isLoading = true;
-      const response = await fetch(
-        `https://imdb-api.com/en/API/SearchTitle/k_di6us43c/${encodeURIComponent(
-          this.title
-        )}`
-      );
-      const data = await response.json();
-      const { results } = data;
-
-      if (results === null) {
-        //Max requests reached for today
-        this.hasMaxRequests = true;
-      }
-
-      this.titles = results;
+      await this.fetchTitles({ searchText: this.searchText });
       this.isLoading = false;
     },
     onClick(id) {
