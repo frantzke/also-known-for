@@ -40,7 +40,7 @@ workflows:
                 - master
   heroku_deploy:
     jobs:
-      -ci:
+      - ci:
           filters:
             branches:
               only:
