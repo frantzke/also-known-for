@@ -4,6 +4,11 @@ export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: "static",
 
+  // To deploy to github pages
+  router: {
+    base: '/also-known-for/'
+  },
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: "Also Known For",
