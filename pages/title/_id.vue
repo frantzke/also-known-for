@@ -22,29 +22,39 @@
       </v-col>
       <v-col cols="9" class="text-left">
         <h2 class="text-h2 mb-2">{{ title.fullTitle }}</h2>
+        <v-divider dark class="my-2"/>
+        <!-- TODO: Max length plot -->
         <p>{{ title.plot }}</p>
+        <v-divider dark class="my-2"/>
+        <p>{{title.genres}}</p>
+        <v-divider dark class="my-2"/>
+        <p>Directors: {{title.directors}}</p>
+        <v-divider dark class="my-2"/>
+        <p>Writers: {{title.writers}}</p>
+        <v-divider dark class="my-2"/>
+        <p>{{title.awards}}</p>
       </v-col>
     </v-row>
 
     <v-divider dark class="my-4 primary" />
 
     <v-row no-gutters>
-      <v-col cols="12" v-for="star in stars" :key="star.id">
+      <v-col cols="12" v-for="actor in actors" :key="actor.id">
         <v-hover v-slot="{ hover }">
           <div class="d-flex py-4" :class="{ 'on-hover': hover }">
-            <div class="actor-container" @click="onClickActor(star.id)">
+            <div class="actor-container" @click="onClickActor(actor.id)">
               <img
-                :src="star.image"
-                :alt="star.name"
+                :src="actor.image"
+                :alt="actor.name"
                 width="140"
                 height="210"
               />
-              <p class="mb-0 text-subtitle-1">{{ star.name }}</p>
+              <p class="mb-0 text-subtitle-1">{{ actor.name }}</p>
             </div>
             <v-divider dark vertical class="mx-2 primary" />
             <div
               class="known-for-container mx-2"
-              v-for="kfor in star.knownFor"
+              v-for="kfor in actor.knownFor"
               :key="kfor.id"
               @click="onClickTitle(kfor.id)"
             >
@@ -59,6 +69,7 @@
                 As {{ kfor.role }}
               </p>
             </div>
+            <v-icon large @click="onAddRoles(actor)"> mdi-chevron-right </v-icon>
           </div>
         </v-hover>
 
@@ -81,14 +92,14 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["title"]),
+    ...mapGetters(["title", "actors"]),
   },
   created() {
     this.init();
     // this.getMockData();
   },
   methods: {
-    ...mapActions(["fetchTitle", "fetchActor"]),
+    ...mapActions(["fetchTitle", "fetchActor", "fetchActors"]),
     async init() {
       //Load title data
       const titleId = this.$route.params.id;
@@ -98,18 +109,50 @@ export default {
       //TODO: Temporarily only fetch one star
       const starList = [this.title.starList[0]];
 
-      //TODO: Move this into a Vuex action
-      const promises = starList.map((star) => {
-        return this.fetchActor({ actorId: star.id });
-      });
-      const actorResults = await Promise.all(promises);
-      this.stars = actorResults;
+      const starListKeys = starList.map((star) => star.id);
+      await this.fetchActors({actorIds: starListKeys});
     },
     getMockData() {
       const { title, stars } = mockData();
       this.title = title;
-      this.stars = stars;
-      console.log(stars);
+      this.actors = stars;
+      // console.log(stars);
+    },
+    async onAddRoles(actor) {
+      console.log(actor);
+      //TODO: Change slice based on additionalRoles
+
+      //Filter down to 5 more roles
+      const roleKeys = actor.castMovies.slice(0, 5).map((role) => role.id);
+      const knowForKeys = actor.knownFor.map((kFor) => kFor.id);
+      //Filter out roles we have already seen
+      const additionalTitles = roleKeys.filter(
+        (key) => !knowForKeys.includes(key)
+      );
+
+      //Load 5 more roles
+      const promises = additionalTitles.map((titleId) => {
+        return this.fetchTitle({ titleId });
+      });
+      //TODO: This will set the title in the store over and over...
+      const titleResults = await Promise.all(promises);
+      //Format titleResulst to what we need
+      console.log(titleResults);
+
+      const results = titleResults.filter((title) => title.actorList);
+
+      const roles = titleResults.map(title => {
+        //Filter title.actorList for this actor
+        
+        return {
+          fullTitle: title.fullTitle,
+          id: title.id,
+          image: title.image
+        }
+      });
+
+      //Add roles to additional Roles array
+
     },
     onClickActor(id) {
       this.$router.push(`/actor/${id}`);
