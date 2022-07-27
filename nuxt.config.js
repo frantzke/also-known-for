@@ -1,4 +1,5 @@
 import colors from "vuetify/es5/util/colors";
+require("dotenv").config();
 
 export default {
   // Target: https://go.nuxtjs.dev/config-target
@@ -6,7 +7,7 @@ export default {
 
   // To deploy to github pages
   router: {
-    base: '/also-known-for/'
+    base: "/also-known-for/",
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
@@ -40,10 +41,11 @@ export default {
     "@nuxt/typescript-build",
     // https://go.nuxtjs.dev/vuetify
     "@nuxtjs/vuetify",
+    "@nuxtjs/dotenv",
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [],
+  modules: ["@nuxtjs/dotenv"],
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
@@ -63,6 +65,11 @@ export default {
   },
 
   env: {
+    BASE_URL: process.env.BASE_URL,
+    API_KEY: process.env.API_KEY,
+  },
+
+  dotenv: {
     BASE_URL: process.env.BASE_URL,
     API_KEY: process.env.API_KEY,
   },

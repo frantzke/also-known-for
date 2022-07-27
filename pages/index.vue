@@ -58,11 +58,11 @@ export default {
     ...mapGetters(["titles"]),
   },
   methods: {
-    ...mapActions(["fetchTitles"]),
+    ...mapActions(["searchTitles"]),
     async onSearch() {
       //TODO: Handle error & max requests
       this.isLoading = true;
-      await this.fetchTitles({ searchText: this.searchText });
+      await this.searchTitles({ searchText: this.searchText });
       this.isLoading = false;
     },
     onClick(id) {

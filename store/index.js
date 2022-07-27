@@ -1,9 +1,10 @@
 import Vue from "vue";
+import { BASE_URL, API_KEY } from "../env";
 
-const { BASE_URL, API_KEY } = process.env; 
 
 // root state
 export const state = () => ({
+  //TODO: convert titles into object
   titles: [],
   title: {},
   stars: [],
@@ -12,7 +13,7 @@ export const state = () => ({
 });
 
 export const actions = {
-  async fetchTitles({ commit }, { searchText }) {
+  async searchTitles({ commit }, { searchText }) {
     //TODO: Handle undefined baseUrl + apiKey
     const encodedText = encodeURIComponent(searchText);
     const url = `${BASE_URL}/SearchTitle/${API_KEY}/${encodedText}`;
@@ -47,6 +48,21 @@ export const actions = {
     return title;
   },
 
+  async fetchTitles({ commit }, { titleIds }) {
+    //TODO: Don't re-fetch titles already in state
+    const promises = titleIds.map((id) => {
+      const url = `${BASE_URL}/Title/${API_KEY}/${id}`;
+      return fetch(url).then(async (response) => await response.json());
+    });
+    const titleResults = await Promise.all(promises);
+
+    // titleResults.forEach((title) => {
+    //   commit("setTitle", { title });
+    // });
+
+    return titleResults;
+  },
+
   async fetchActor({ commit }, { actorId }) {
     const encodedText = encodeURIComponent(actorId);
     const url = `${BASE_URL}/Name/${API_KEY}/${encodedText}`;
@@ -75,6 +91,9 @@ export const actions = {
 
 export const mutations = {
   setTitles(state, { titles }) {
+    // const object = Object.fromEntries(
+    //   titles.map((title) => [ title.id, title ])
+    //  )
     Vue.set(state, "titles", titles);
   },
 
@@ -89,8 +108,9 @@ export const mutations = {
 
 // root getters
 export const getters = {
-  titles: (state) => state.titles,
+  titles: (state) => Object.values(state.titles),
   title: (state) => state.title,
+  titleById: (state) => id => state.titles[id],
   actor: (state) => state.actor,
   actors: (state) => Object.values(state.actors),
   actorById: (state) => id => state.actors[id]
