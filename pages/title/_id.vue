@@ -40,6 +40,7 @@
 
     <v-row no-gutters>
       <v-col cols="12" v-for="actor in actors" :key="actor.id">
+        <!-- TODO: Move into its own component -->
         <v-hover v-slot="{ hover }">
           <div class="d-flex py-4" :class="{ 'on-hover': hover }">
             <div class="actor-container" @click="onClickActor(actor.id)">
@@ -67,6 +68,23 @@
               <p class="mb-0 text-subtitle-1">{{ kfor.title }}</p>
               <p class="mb-0 text-body-1 font-weight-light">
                 As {{ kfor.role }}
+              </p>
+            </div>
+            <div
+              class="known-for-container mx-2"
+              v-for="role in actor.additionalRoles"
+              :key="role.id"
+              @click="onClickTitle(role.id)"
+            >
+              <img
+                :src="role.image"
+                :alt="role.title"
+                width="140"
+                height="210"
+              />
+              <p class="mb-0 text-subtitle-1">{{ role.title }}</p>
+              <p class="mb-0 text-body-1 font-weight-light">
+                As {{ role.role }}
               </p>
             </div>
             <v-icon large @click="onAddRoles(actor)"> mdi-chevron-right </v-icon>
@@ -99,7 +117,7 @@ export default {
     // this.getMockData();
   },
   methods: {
-    ...mapActions(["fetchTitle", "fetchActor", "fetchActors"]),
+    ...mapActions(["fetchTitle", "fetchTitles", "fetchActor", "fetchActors"]),
     async init() {
       //Load title data
       const titleId = this.$route.params.id;
@@ -123,36 +141,33 @@ export default {
       //TODO: Change slice based on additionalRoles
 
       //Filter down to 5 more roles
-      const roleKeys = actor.castMovies.slice(0, 5).map((role) => role.id);
+      const index = actor.additionalRoles ? actor.additionalRoles.length : 0;
+      const roleKeys = actor.castMovies.slice(index, index + 5).map((role) => role.id);
       const knowForKeys = actor.knownFor.map((kFor) => kFor.id);
       //Filter out roles we have already seen
       const additionalTitles = roleKeys.filter(
         (key) => !knowForKeys.includes(key)
       );
 
-      //Load 5 more roles
-      const promises = additionalTitles.map((titleId) => {
-        return this.fetchTitle({ titleId });
-      });
-      //TODO: This will set the title in the store over and over...
-      const titleResults = await Promise.all(promises);
-      //Format titleResulst to what we need
-      console.log(titleResults);
-
+      const titleResults = await this.fetchTitles({titleIds: additionalTitles});
       const results = titleResults.filter((title) => title.actorList);
 
-      const roles = titleResults.map(title => {
-        //Filter title.actorList for this actor
-        
+      const roles = results.map(title => {
+        const role = title.actorList.find((role) => role.id === actor.id);
         return {
           fullTitle: title.fullTitle,
           id: title.id,
-          image: title.image
+          image: title.image,
+          role: role ? role.asCharacter : ""
         }
       });
 
       //Add roles to additional Roles array
-
+      if (actor.additionalRoles) {
+        actor.additionalRoles = [...actor.additionalRoles, ...roles];
+      } else {
+        actor.additionalRoles = roles;
+      }
     },
     onClickActor(id) {
       this.$router.push(`/actor/${id}`);

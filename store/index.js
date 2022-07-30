@@ -5,7 +5,7 @@ import { BASE_URL, API_KEY } from "../env";
 // root state
 export const state = () => ({
   //TODO: convert titles into object
-  titles: [],
+  titles: {},
   title: {},
   stars: [],
   actor: {},
@@ -51,7 +51,7 @@ export const actions = {
   async fetchTitles({ commit }, { titleIds }) {
     //TODO: Don't re-fetch titles already in state
     const promises = titleIds.map((id) => {
-      const url = `${BASE_URL}/Title/${API_KEY}/${id}`;
+      const url = `${BASE_URL}/Title/${API_KEY}/${id}/FullActor`;
       return fetch(url).then(async (response) => await response.json());
     });
     const titleResults = await Promise.all(promises);
@@ -59,6 +59,7 @@ export const actions = {
     // titleResults.forEach((title) => {
     //   commit("setTitle", { title });
     // });
+    commit("setTitles", {titles: titleResults});
 
     return titleResults;
   },
@@ -91,10 +92,10 @@ export const actions = {
 
 export const mutations = {
   setTitles(state, { titles }) {
-    // const object = Object.fromEntries(
-    //   titles.map((title) => [ title.id, title ])
-    //  )
-    Vue.set(state, "titles", titles);
+    const titlesById = Object.fromEntries(
+      titles.map((title) => [ title.id, title ])
+     )
+    Vue.set(state, "titles", titlesById);
   },
 
   setTitle(state, { title }) {
@@ -103,6 +104,10 @@ export const mutations = {
 
   setActor(state, { actor }) {
     Vue.set(state.actors, actor.id, actor);
+  },
+
+  resetActors(state) {
+    Vue.set(state, "actors", {});
   }
 };
 
