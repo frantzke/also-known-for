@@ -2,7 +2,7 @@
   <v-container>
     <div class="d-flex">
       <v-text-field
-        placeholder="Search for Movies or TV Shows"
+        placeholder="Search Movies and TV Shows"
         v-model="searchText"
         required
         solo
@@ -28,27 +28,25 @@
       </p>
     </div>
 
-    <div v-for="title in titles" :key="title.id" @click="onClick(title.id)">
-      <v-hover v-slot="{ hover }">
-        <div class="d-flex py-4" :class="{ 'on-hover': hover }">
-          <img :src="title.image" alt="" width="100" height="150" />
-          <div>
-            <h2>{{ title.title }}</h2>
-            <p class="subtitle-1">{{ title.description }}</p>
-          </div>
-        </div>
-      </v-hover>
-
-      <v-divider />
+    <div v-if="isLoading">
+      <v-skeleton-loader v-for="i in Array(5).keys()" class="mx-auto py-4" type="list-item-three-line"/>
     </div>
+
+    <TitleItem v-for="title in titles" :key="title.id" :title="title"/>
+
   </v-container>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
 
+import TitleItem from "../components/Title-Item.vue"
+
 export default {
   name: "IndexPage",
+  components: {
+    TitleItem
+},
   data: () => ({
     isLoading: false,
     searchText: "",
@@ -64,10 +62,7 @@ export default {
       this.isLoading = true;
       await this.searchTitles({ searchText: this.searchText });
       this.isLoading = false;
-    },
-    onClick(id) {
-      this.$router.push(`/title/${id}`);
-    },
+    }
   },
 };
 </script>
@@ -75,9 +70,5 @@ export default {
 <style scoped>
 .search-btn {
   margin-top: 2px;
-}
-
-.on-hover {
-  background-color: #272727;
 }
 </style>
