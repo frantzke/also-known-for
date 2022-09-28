@@ -3,7 +3,13 @@
     <v-app-bar color="rgb(18,18,18)" fixed app>
       <div class="nav-bar-content">
         <div class="nav-bar-title pl-6">
-          <a color="primary" class="text-h6 font-weight-regular" @click="onHome()">{{ title }}</a>
+          <a
+            color="primary"
+            class="text-h6 font-weight-regular"
+            @click="onHome()"
+          >
+            {{ title }}
+          </a>
         </div>
       </div>
     </v-app-bar>
@@ -12,10 +18,6 @@
         <Nuxt />
       </v-container>
     </v-main>
-
-    <v-footer absolute app>
-      <span>&copy; {{ new Date().getFullYear() }}</span>
-    </v-footer>
   </v-app>
 </template>
 
@@ -48,6 +50,6 @@ export default {
 }
 
 .main-container {
-  max-width: 1280px!important;
+  max-width: 1280px !important;
 }
 </style>

@@ -19,38 +19,42 @@
       </v-btn>
     </div>
 
-    <div v-if="hasMaxRequests">
+    <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">
-        Maximum requests for today 😢
+        {{errorMsg}}
       </h4>
-      <p class="subtitle-1 text-center font-weight-light">
+      <!-- <p class="subtitle-1 text-center font-weight-light">
         Please come back tomorrow
-      </p>
+      </p> -->
     </div>
 
     <div v-if="isLoading">
-      <v-skeleton-loader v-for="i in Array(5).keys()" class="mx-auto py-4" type="list-item-three-line"/>
+      <v-skeleton-loader
+        v-for="i in 6"
+        class="mx-auto py-4"
+        type="list-item-three-line"
+      />
     </div>
 
-    <TitleItem v-for="title in titles" :key="title.id" :title="title"/>
-
+    <TitleItem v-for="title in titles" :key="title.id" :title="title" />
   </v-container>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
 
-import TitleItem from "../components/Title-Item.vue"
+import TitleItem from "../components/Title-Item.vue";
 
 export default {
   name: "IndexPage",
   components: {
-    TitleItem
-},
+    TitleItem,
+  },
   data: () => ({
     isLoading: false,
     searchText: "",
-    hasMaxRequests: false,
+    hasError: false,
+    errorMsg: ""
   }),
   computed: {
     ...mapGetters(["titles"]),
@@ -58,11 +62,23 @@ export default {
   methods: {
     ...mapActions(["searchTitles"]),
     async onSearch() {
-      //TODO: Handle error & max requests
-      this.isLoading = true;
-      await this.searchTitles({ searchText: this.searchText });
-      this.isLoading = false;
-    }
+      if (this.searchText === "") {
+        this.hasError = true;
+        this.errorMsg = "Please provide a search!"
+        return;
+      }
+
+      try {
+        this.hasError = false;
+        this.isLoading = true;
+        await this.searchTitles({ searchText: this.searchText });
+      } catch (err) {
+        this.hasError = true
+        this.errorMsg = err.message;
+      } finally{
+        this.isLoading = false;
+      }
+    },
   },
 };
 </script>

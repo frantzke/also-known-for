@@ -4,11 +4,11 @@
       <div class="d-flex py-4" :class="{ 'on-hover': hover }">
         <v-img
           :src="title.image"
+          :alt="`Poster for ${title.title}`"
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
           aspect-ratio="2/3"
-          height="270px"
-          max-width="180px"
+          max-width="6rem"
         />
         <div class="px-4 py-2">
           <h2>{{ title.title }}</h2>

@@ -14,33 +14,34 @@
         <v-img
           :src="title.image"
           :alt="`movie poster for ${title.fullTitle}`"
-          height="400"
-          max-width="100%"
-          aspect-ratio="2/3"
+          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
+          aspect-ratio="2/3"
+          height="27rem"
+          max-width="18rem"
         />
       </v-col>
       <v-col cols="9" class="text-left">
         <h2 class="text-h2 mb-2">{{ title.fullTitle }}</h2>
-        <v-divider dark class="my-2"/>
+        <v-divider dark class="my-2" />
         <!-- TODO: Max length plot -->
         <p>{{ title.plot }}</p>
-        <v-divider dark class="my-2"/>
-        <p>{{title.genres}}</p>
-        <v-divider dark class="my-2"/>
-        <p>Directors: {{title.directors}}</p>
-        <v-divider dark class="my-2"/>
-        <p>Writers: {{title.writers}}</p>
-        <v-divider dark class="my-2"/>
-        <p>{{title.awards}}</p>
+        <v-divider dark class="my-2" />
+        <p>{{ title.genres }}</p>
+        <v-divider dark class="my-2" />
+        <p>Directors: {{ title.directors }}</p>
+        <v-divider dark class="my-2" />
+        <p>Writers: {{ title.writers }}</p>
+        <v-divider dark class="my-2" />
+        <p>{{ title.awards }}</p>
       </v-col>
     </v-row>
 
     <v-divider dark class="my-4 primary" />
 
     <v-row no-gutters>
-      <v-col cols="12" v-for="actor in actors" :key="actor.id">
-        <!-- TODO: Move into its own component -->
+      <ActorItem v-for="actor in actors" :key="actor.id" :actor="actor" />
+      <!-- <v-col cols="12" v-for="actor in actors" :key="actor.id">
         <v-hover v-slot="{ hover }">
           <div class="d-flex py-4" :class="{ 'on-hover': hover }">
             <div class="actor-container" @click="onClickActor(actor.id)">
@@ -87,12 +88,14 @@
                 As {{ role.role }}
               </p>
             </div>
-            <v-icon large @click="onAddRoles(actor)"> mdi-chevron-right </v-icon>
+            <v-icon large @click="onAddRoles(actor)">
+              mdi-chevron-right
+            </v-icon>
           </div>
         </v-hover>
 
         <v-divider />
-      </v-col>
+      </v-col> -->
     </v-row>
   </v-container>
 </template>
@@ -100,9 +103,14 @@
 <script>
 import mockData from "@/helpers/mockData";
 import { mapGetters, mapActions } from "vuex";
+import ActorItem from "@/components/Actor-Item.vue";
+import { title } from "process";
 
 export default {
   name: "TitlePage",
+  components: {
+    ActorItem,
+},
   data() {
     return {
       stars: [],
@@ -121,6 +129,12 @@ export default {
     async init() {
       //Load title data
       const titleId = this.$route.params.id;
+
+      if (title.id === titleId) {
+        //Title is already loaded.
+        return;
+      }
+
       //TODO: Handle error and max requests
       await this.fetchTitle({ titleId });
 
@@ -128,7 +142,7 @@ export default {
       const starList = [this.title.starList[0]];
 
       const starListKeys = starList.map((star) => star.id);
-      await this.fetchActors({actorIds: starListKeys});
+      await this.fetchActors({ actorIds: starListKeys });
     },
     getMockData() {
       const { title, stars } = mockData();
@@ -142,24 +156,28 @@ export default {
 
       //Filter down to 5 more roles
       const index = actor.additionalRoles ? actor.additionalRoles.length : 0;
-      const roleKeys = actor.castMovies.slice(index, index + 5).map((role) => role.id);
+      const roleKeys = actor.castMovies
+        .slice(index, index + 5)
+        .map((role) => role.id);
       const knowForKeys = actor.knownFor.map((kFor) => kFor.id);
       //Filter out roles we have already seen
       const additionalTitles = roleKeys.filter(
         (key) => !knowForKeys.includes(key)
       );
 
-      const titleResults = await this.fetchTitles({titleIds: additionalTitles});
+      const titleResults = await this.fetchTitles({
+        titleIds: additionalTitles,
+      });
       const results = titleResults.filter((title) => title.actorList);
 
-      const roles = results.map(title => {
+      const roles = results.map((title) => {
         const role = title.actorList.find((role) => role.id === actor.id);
         return {
           fullTitle: title.fullTitle,
           id: title.id,
           image: title.image,
-          role: role ? role.asCharacter : ""
-        }
+          role: role ? role.asCharacter : "",
+        };
       });
 
       //Add roles to additional Roles array

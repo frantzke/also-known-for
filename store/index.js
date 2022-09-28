@@ -24,9 +24,9 @@ export const actions = {
     const { results } = data;
 
     if (results === null) {
-      //Max requests reached for today
-      //TODO: Handle Error
-    }
+      // data.errorMessage === 'Server busy' || 'Max requests'
+      throw Error(data.errorMessage);
+    } 
 
     commit("setTitles", { titles: results });
   },
