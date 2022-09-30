@@ -21,7 +21,7 @@
 
     <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">
-        {{errorMsg}}
+        {{errorMsg}} 😖
       </h4>
       <!-- <p class="subtitle-1 text-center font-weight-light">
         Please come back tomorrow
@@ -60,7 +60,7 @@ export default {
     ...mapGetters(["titles"]),
   },
   methods: {
-    ...mapActions(["searchTitles"]),
+    ...mapActions(["searchTitles", "resetTitles"]),
     async onSearch() {
       if (this.searchText === "") {
         this.hasError = true;
@@ -71,6 +71,7 @@ export default {
       try {
         this.hasError = false;
         this.isLoading = true;
+        this.resetTitles();
         await this.searchTitles({ searchText: this.searchText });
       } catch (err) {
         this.hasError = true
