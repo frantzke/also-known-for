@@ -2,10 +2,11 @@
   <v-app>
     <v-app-bar color="rgb(18,18,18)" fixed app>
       <div class="nav-bar-content">
-        <div class="nav-bar-title pl-6">
+        <div class="nav-bar-title">
+          <img src="AKF-Logo.ico" width="40" height="40" @click="onHome()"/>
           <a
             color="primary"
-            class="text-h6 font-weight-regular"
+            class="text-h6 font-weight-regular pl-4"
             @click="onHome()"
           >
             {{ title }}
@@ -41,11 +42,15 @@ export default {
 .nav-bar-content {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
 .nav-bar-title {
+  display: flex;
+  align-items: center;
   width: 100%;
+  padding: 0 24px;
   max-width: 1280px;
 }
 

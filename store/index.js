@@ -77,6 +77,11 @@ export const actions = {
 
     const results = titleResults.filter((title) => title.actorList);
 
+    if (results === []) {
+      const result = titleResults.pop();
+      throw new Error(result.errorMessage);
+    }
+
     const roles = results.map((title) => {
       const role = title.actorList.find((role) => role.id === actorId);
       return {

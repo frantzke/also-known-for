@@ -1,14 +1,14 @@
 <template>
   <v-col cols="12">
     <div class="d-flex py-4 item-container">
-      <div class="actor-container" @click="onClickActor(actor.id)">
+      <div @click="onClickActor(actor.id)">
         <v-img
           :src="actor.image"
           :alt="actor.name"
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
           aspect-ratio="2/3"
-          max-width="20rem"
+          max-width="18vw"
         />
         <p class="mb-0 text-subtitle-1">{{ actor.name }}</p>
       </div>
@@ -25,12 +25,15 @@
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
           aspect-ratio="2/3"
-          max-width="16rem"
+          max-width="18vw"
         />
         <p class="mb-0 text-subtitle-1">{{ role.title }}</p>
-        <p class="mb-0 text-body-1 font-weight-light">As {{ role.role }}</p>
+        <p class="mb-0 text-body-1 font-weight-light primary--text">As {{ role.role }}</p>
       </div>
-      <v-icon large color="primary" @click="onAddRoles"> mdi-chevron-right </v-icon>
+      <div class="d-flex align-center">
+        <v-progress-circular v-if="isLoading" indeterminate color="primary"/>
+        <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon>
+      </div>
     </div>
 
     <v-divider />
@@ -43,6 +46,11 @@ export default {
   props: {
     actor: Object,
   },
+  data() {
+    return {
+      isLoading: false
+    }
+  },
   methods: {
     ...mapActions(["fetchActorTitles"]),
     onClickActor(id) {
@@ -51,23 +59,25 @@ export default {
     onClickTitle(id) {
       this.$router.push(`/title/${id}`);
     },
-    onAddRoles() {
-      this.fetchActorTitles({actorId: this.actor.id});
+    async onAddRoles() {
+      try {
+        this.isLoading = true;
+        await this.fetchActorTitles({actorId: this.actor.id});
+      } catch (err) {
+        console.log(err.message);
+        this.$emit("error", err.message);
+      } finally {
+        this.isLoading = false;
+      }
     }
   },
 };
 </script>
 <style>
-.actor-container {
-  max-width: 140px;
-}
 
 .item-container {
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-.known-for-container {
-  max-width: 140px;
-}
 </style>

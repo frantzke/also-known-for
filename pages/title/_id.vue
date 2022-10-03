@@ -41,8 +41,28 @@
     <v-divider dark class="my-4 primary" />
 
     <v-row no-gutters>
-      <ActorItem v-for="actor in actors" :key="actor.id" :actor="actor"/>
+      <ActorItem v-for="actor in actors" :key="actor.id" :actor="actor" @error="onActorError"/>
     </v-row>
+
+    <div class="d-flex justify-center" v-if="!hasError">
+      <v-btn
+        large
+        text
+        append-icon
+        class="m-4 primary--text"
+        color="primary"
+        @click="onMoreActors"
+      >
+        More Cast
+        <v-icon color="primary" right large>
+          mdi-menu-down
+        </v-icon>
+      </v-btn>
+    </div>
+
+    <v-snackbar v-model="showSnackBar" color="red" timeout="3500">
+      {{ errorMessage }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -59,9 +79,9 @@ export default {
 },
   data() {
     return {
-      stars: [],
       hasError: false,
-      errorMessage: ""
+      errorMessage: "An error occurred",
+      showSnackBar: false
     };
   },
   computed: {
@@ -83,7 +103,7 @@ export default {
       //Load title data
       const titleId = this.$route.params.id;
 
-      if (title.id === titleId) {
+      if (this.title.id === titleId) {
         //Title is already loaded.
         return;
       } else {
@@ -108,7 +128,18 @@ export default {
       const { title, stars } = mockData();
       this.title = title;
       this.actors = stars;
-      // console.log(stars);
+    },
+    onMoreActors() {
+      console.log("More Actors")
+      const index = this.actors.length;
+      const actors = [...this.title.actorList].slice(index, index + 2);
+      const actorIds = actors.map((actor) => actor.id);
+
+      this.fetchActors({actorIds});
+    },
+    onActorError(message) {
+      this.showSnackBar = true;
+      this.errorMessage = message;
     }
   },
 };

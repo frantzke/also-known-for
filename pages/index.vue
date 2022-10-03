@@ -60,7 +60,7 @@ export default {
     ...mapGetters(["titles"]),
   },
   methods: {
-    ...mapActions(["searchTitles", "resetTitles"]),
+    ...mapActions(["searchTitles", "resetSearchPage"]),
     async onSearch() {
       if (this.searchText === "") {
         this.hasError = true;
@@ -71,7 +71,7 @@ export default {
       try {
         this.hasError = false;
         this.isLoading = true;
-        this.resetTitles();
+        this.resetSearchPage();
         await this.searchTitles({ searchText: this.searchText });
       } catch (err) {
         this.hasError = true
