@@ -109,8 +109,6 @@ export const actions = {
     });
     const actorResults = await Promise.all(promises);
     actorResults.forEach((actor) => {
-      //Add roles property
-      actor.roles = actor.knownFor || [];
       commit("setActor", { actor });
     });
 
@@ -140,6 +138,8 @@ export const mutations = {
   },
 
   setActor(state, { actor }) {
+    //Add roles property
+    actor.roles = actor.knownFor || [];
     Vue.set(state.actors, actor.id, actor);
   },
 

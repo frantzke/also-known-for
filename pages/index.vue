@@ -61,6 +61,9 @@ export default {
   },
   methods: {
     ...mapActions(["searchTitles", "resetSearchPage"]),
+    init() {
+      this.resetSearchPage();
+    },
     async onSearch() {
       if (this.searchText === "") {
         this.hasError = true;

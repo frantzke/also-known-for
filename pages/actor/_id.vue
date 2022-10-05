@@ -9,17 +9,17 @@
     </div>
 
     <v-row v-else>
-      <v-col cols="3">
+      <v-col sm="6" md="3">
         <v-img
           :src="actor.image"
-          :alt="actor.name"
-          height="400"
-          max-width="100%"
-          aspect-ratio="2/3"
+          :alt="`photo of ${actor.name}`"
+          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
+          width="100%"
+          aspect-ratio="2/3"
         />
       </v-col>
-      <v-col cols="9" class="text-left">
+      <v-col sm="6" md="9" class="text-left">
         <h2 class="text-h2 mb-2">{{ actor.name }}</h2>
         <v-divider dark class="my-2" />
         <p>{{ actor.summary }}</p>
@@ -34,33 +34,22 @@
 
     <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
     <div class="d-flex py-4">
-      <div
-        class="mx-2"
-        v-for="kfor in actor.knownFor"
-        :key="kfor.id"
-        @click="onClickTitle(kfor.id)"
-      >
-        <v-img
-          :src="kfor.image"
-          :alt="kfor.title"
-          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
-          contain
-          aspect-ratio="2/3"
-          max-width="10vw"
-        />
-        <p class="mb-0 text-subtitle-1">{{ kfor.title }}</p>
-        <p class="mb-0 text-body-1 font-weight-light primary--text">
-          As {{ kfor.role }}
-        </p>
-      </div>
+      <Poster 
+        v-for="kfor in actor.knownFor" 
+        :key="`kfor_${kfor.id}`"
+        :imageSrc="kfor.image"
+        :name="kfor.title" 
+        :role="kfor.role"
+        @on-click="onClickTitle(kfor.id)"
+      />
     </div>
 
     <v-divider dark class="my-4 primary" />
 
     <h4 class="mb-2 text-h4 font-weight-light">Movies</h4>
     <div
-      v-for="title in actor.castMovies"
-      :key="title.id"
+      v-for="(title, index) in actor.castMovies"
+      :key="index"
       @click="onClickTitle(title.id)"
     >
       <v-hover v-slot="{ hover }">
@@ -82,8 +71,13 @@
 import mockData from "@/helpers/mockData";
 import { mapGetters, mapActions } from "vuex";
 
+import Poster from '@/components/Poster.vue';
+
 export default {
   name: "ActorPage",
+  components: {
+    Poster
+  },
   data() {
     return {
       hasMaxRequests: false,
@@ -96,7 +90,8 @@ export default {
     ...mapGetters(["actorById"]),
     actor() {
       const actorId = this.$route.params.id;
-      return this.actorById(actorId);
+      const actor = this.actorById(actorId)
+      return actor ? actor : {};
     },
   },
   created() {
