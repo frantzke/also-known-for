@@ -12,10 +12,10 @@ export const state = () => ({
 
 export const actions = {
   async searchTitles({ commit }, { searchText }) {
-    //TODO: Handle undefined baseUrl + apiKey
+    if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
+
     const encodedText = encodeURIComponent(searchText);
     const url = `${BASE_URL}/SearchTitle/${API_KEY}/${encodedText}`;
-    //TODO: Handle Error
     const data = await fetch(url).then(async (response) => {
       return await response.json();
     });
@@ -30,26 +30,22 @@ export const actions = {
   },
 
   async fetchTitle({ commit }, { titleId }) {
+    if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
+
     const encodedText = encodeURIComponent(titleId);
     const url = `${BASE_URL}/Title/${API_KEY}/${encodedText}`;
-    //TODO: Handle Error
     const title = await fetch(url).then(async (response) => {
       return await response.json();
     });
 
     if (title.starList === null) {
       throw new Error(title.errorMessage);
-      //Max requests reached for today
-      //TODO: Handle Error
     }
 
     commit("setTitle", { title });
-    //TODO: Don't return title
-    return title;
   },
 
   async fetchActorTitles({ commit, state }, { actorId, titleIds }) {
-    //TODO: Don't re-fetch titles already in state
     const actor = state.actors[actorId];
     
     // Sort titles by date
@@ -103,12 +99,10 @@ export const actions = {
       return await response.json();
     });
 
-    //TODO: Temporarily return actor
-    return actor;
+    commit("setActor", { actor })
   },
 
   async fetchActors({ commit }, { actorIds }) {
-    //TODO: Don't re-fetch actors already in state
     const promises = actorIds.map((id) => {
       const url = `${BASE_URL}/Name/${API_KEY}/${id}`;
       return fetch(url).then(async (response) => await response.json());

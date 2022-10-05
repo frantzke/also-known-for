@@ -8,16 +8,16 @@
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
           aspect-ratio="2/3"
-          max-width="18vw"
+          max-width="10vw"
         />
         <p class="mb-0 text-subtitle-1">{{ actor.name }}</p>
       </div>
       <v-divider dark vertical class="mx-2 primary" />
       <div
-        class="known-for-container mx-2"
+        class="mx-2"
         v-for="role in actor.roles"
         :key="role.id"
-        @click="onClickTitle(kfor.id)"
+        @click="onClickTitle(role.id)"
       >
         <v-img
           :src="role.image"
@@ -25,7 +25,7 @@
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
           aspect-ratio="2/3"
-          max-width="18vw"
+          max-width="10vw"
         />
         <p class="mb-0 text-subtitle-1">{{ role.title }}</p>
         <p class="mb-0 text-body-1 font-weight-light primary--text">As {{ role.role }}</p>

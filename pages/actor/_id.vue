@@ -1,12 +1,11 @@
 <template>
   <v-container>
-    <div v-if="hasMaxRequests">
-      <h4 class="text-h4 text-center font-weight-light">
+    <div v-if="hasError">
+      <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
+      <!-- <p class="subtitle-1 text-center font-weight-light">
         Maximum requests for today 😢
-      </h4>
-      <p class="subtitle-1 text-center font-weight-light">
         Please come back tomorrow
-      </p>
+      </p> -->
     </div>
 
     <v-row v-else>
@@ -22,24 +21,37 @@
       </v-col>
       <v-col cols="9" class="text-left">
         <h2 class="text-h2 mb-2">{{ actor.name }}</h2>
-        <h5 class="text-h5 mb-2">{{ actor.role }}</h5>
-        <p class="text-body-1">{{ actor.summary }}</p>
+        <v-divider dark class="my-2" />
+        <p>{{ actor.summary }}</p>
+        <v-divider dark class="my-2" />
+        <p>{{ actor.role }}</p>
+        <v-divider dark class="my-2" />
+        <p>{{ actor.awards }}</p>
       </v-col>
     </v-row>
 
     <v-divider dark class="my-4 primary" />
 
     <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
-    <div class="d-flex">
+    <div class="d-flex py-4">
       <div
-        class="known-for-container mx-2"
+        class="mx-2"
         v-for="kfor in actor.knownFor"
         :key="kfor.id"
         @click="onClickTitle(kfor.id)"
       >
-        <img :src="kfor.image" :alt="kfor.title" width="140" height="210" />
+        <v-img
+          :src="kfor.image"
+          :alt="kfor.title"
+          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
+          contain
+          aspect-ratio="2/3"
+          max-width="10vw"
+        />
         <p class="mb-0 text-subtitle-1">{{ kfor.title }}</p>
-        <p class="mb-0 text-body-1 font-weight-light">As {{ kfor.role }}</p>
+        <p class="mb-0 text-body-1 font-weight-light primary--text">
+          As {{ kfor.role }}
+        </p>
       </div>
     </div>
 
@@ -47,14 +59,14 @@
 
     <h4 class="mb-2 text-h4 font-weight-light">Movies</h4>
     <div
-      v-for="title in movies"
+      v-for="title in actor.castMovies"
       :key="title.id"
       @click="onClickTitle(title.id)"
     >
       <v-hover v-slot="{ hover }">
         <div class="d-flex py-4" :class="{ 'on-hover': hover }">
           <div>
-            <h2>{{ title.title }} {{ title.year }}</h2>
+            <h3>{{ title.title }} {{ title.year }}</h3>
             <p class="mb-0 subtitle-1">{{ title.role }}</p>
             <p class="subtitle-1">{{ title.description }}</p>
           </div>
@@ -74,13 +86,18 @@ export default {
   name: "ActorPage",
   data() {
     return {
-      actor: {},
       hasMaxRequests: false,
       movies: [],
+      hasError: false,
+      errorMsg: "",
     };
   },
   computed: {
-    // ...mapGetters(["actor"]),
+    ...mapGetters(["actorById"]),
+    actor() {
+      const actorId = this.$route.params.id;
+      return this.actorById(actorId);
+    },
   },
   created() {
     this.init();
@@ -89,15 +106,16 @@ export default {
   methods: {
     ...mapActions(["fetchActor"]),
     async init() {
-      //Load title data
+      // Check if actor is already loaded
       const actorId = this.$route.params.id;
-      //TODO: Handle Error & max requests
-      //TODO: Use Vuex store instead of returning actor obj
-      const actor = await this.fetchActor({ actorId });
-      this.actor = actor;
-      this.movies = this.actor.castMovies.slice(0, 10);
+      if (this.actor.id === actorId) return;
 
-      this.knownFors = actor.knownFor;
+      try {
+        await this.fetchActor({ actorId });
+      } catch (err) {
+        this.hasError = true;
+        this.errorMsg = err.message;
+      }
     },
     getMockData() {
       const { stars } = mockData();
