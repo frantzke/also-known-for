@@ -8,31 +8,36 @@
       </p> -->
     </div>
 
-    <v-row v-else>
-      <v-col sm="6" md="3">
-        <v-img
-          :src="title.image"
-          :alt="`movie poster for ${title.fullTitle}`"
-          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
-          contain
-          width="100%"
-          aspect-ratio="2/3"
-        />
-      </v-col>
-      <v-col sm="6" md="9" class="text-left">
-        <h2 class="text-h2 mb-2">{{ title.fullTitle }}</h2>
-        <v-divider dark class="my-2" />
-        <p>{{ title.plot }}</p>
-        <v-divider dark class="my-2" />
-        <p>{{ title.genres }}</p>
-        <v-divider dark class="my-2" />
-        <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
-        <v-divider dark class="my-2" v-if="hasDirectors" />
-        <p v-if="hasWriters">Writers: {{ title.writers }}</p>
-        <v-divider dark class="my-2" v-if="hasWriters" />
-        <p>{{ title.awards }}</p>
-      </v-col>
-    </v-row>
+    <v-container v-else>
+      <v-row>
+        <v-col cols="12" sm="6" md="3">
+          <v-img
+            :src="title.image"
+            :alt="`movie poster for ${title.fullTitle}`"
+            lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
+            contain
+            width="100%"
+            aspect-ratio="2/3"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="9" class="text-left">
+          <h2 v-if="$vuetify.breakpoint.smAndDown" class="text-h4 mb-2">
+            {{ title.fullTitle }}
+          </h2>
+          <h2 v-else class="text-h2 mb-2">{{ title.fullTitle }}</h2>
+          <v-divider dark class="my-2" />
+          <p>{{ title.plot }}</p>
+          <v-divider dark class="my-2" />
+          <p>{{ title.genres }}</p>
+          <v-divider dark class="my-2" />
+          <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
+          <v-divider dark class="my-2" v-if="hasDirectors" />
+          <p v-if="hasWriters">Writers: {{ title.writers }}</p>
+          <v-divider dark class="my-2" v-if="hasWriters" />
+          <p>{{ title.awards }}</p>
+        </v-col>
+      </v-row>
+    </v-container>
 
     <v-divider dark class="my-4 primary" />
 
@@ -98,16 +103,12 @@ export default {
     // this.getMockData();
   },
   methods: {
-    ...mapActions([
-      "fetchTitle",
-      "fetchActors",
-      "resetTitlePage",
-    ]),
+    ...mapActions(["fetchTitle", "fetchActors", "resetTitlePage"]),
     async init() {
       const titleId = this.$route.params.id;
 
       //Check if title is already loaded
-      if (this.title.id === titleId) return; 
+      if (this.title.id === titleId) return;
 
       try {
         this.resetTitlePage();

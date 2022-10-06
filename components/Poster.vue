@@ -25,6 +25,6 @@ export default {
 </script>
 <style>
 .poster-container {
-  max-width: 10vw;
+  max-width: 12rem;
 }
 </style>

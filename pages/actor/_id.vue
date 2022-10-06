@@ -8,37 +8,42 @@
       </p> -->
     </div>
 
-    <v-row v-else>
-      <v-col sm="6" md="3">
-        <v-img
-          :src="actor.image"
-          :alt="`photo of ${actor.name}`"
-          lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
-          contain
-          width="100%"
-          aspect-ratio="2/3"
-        />
-      </v-col>
-      <v-col sm="6" md="9" class="text-left">
-        <h2 class="text-h2 mb-2">{{ actor.name }}</h2>
-        <v-divider dark class="my-2" />
-        <p>{{ actor.summary }}</p>
-        <v-divider dark class="my-2" />
-        <p>{{ actor.role }}</p>
-        <v-divider dark class="my-2" />
-        <p>{{ actor.awards }}</p>
-      </v-col>
-    </v-row>
+    <v-container v-else>
+      <v-row>
+        <v-col cols="12" sm="6" md="3">
+          <v-img
+            :src="actor.image"
+            :alt="`photo of ${actor.name}`"
+            lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
+            contain
+            width="100%"
+            aspect-ratio="2/3"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="9" class="text-left">
+          <h2 v-if="$vuetify.breakpoint.smAndDown" class="text-h3 mb-2">
+            {{ actor.name }}
+          </h2>
+          <h2 v-else class="text-h2 mb-2">{{ actor.name }}</h2>
+          <v-divider dark class="my-2" />
+          <p>{{ actor.summary }}</p>
+          <v-divider dark class="my-2" />
+          <p>{{ actor.role }}</p>
+          <v-divider dark class="my-2" />
+          <p>{{ actor.awards }}</p>
+        </v-col>
+      </v-row>
+    </v-container>
 
     <v-divider dark class="my-4 primary" />
 
     <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
-    <div class="d-flex py-4">
-      <Poster 
-        v-for="kfor in actor.knownFor" 
+    <div class="d-flex py-4 item-container">
+      <Poster
+        v-for="kfor in actor.knownFor"
         :key="`kfor_${kfor.id}`"
         :imageSrc="kfor.image"
-        :name="kfor.title" 
+        :name="kfor.title"
         :role="kfor.role"
         @on-click="onClickTitle(kfor.id)"
       />
@@ -71,12 +76,12 @@
 import mockData from "@/helpers/mockData";
 import { mapGetters, mapActions } from "vuex";
 
-import Poster from '@/components/Poster.vue';
+import Poster from "@/components/Poster.vue";
 
 export default {
   name: "ActorPage",
   components: {
-    Poster
+    Poster,
   },
   data() {
     return {
@@ -90,7 +95,7 @@ export default {
     ...mapGetters(["actorById"]),
     actor() {
       const actorId = this.$route.params.id;
-      const actor = this.actorById(actorId)
+      const actor = this.actorById(actorId);
       return actor ? actor : {};
     },
   },
@@ -127,5 +132,10 @@ export default {
 <style scoped>
 .on-hover {
   background-color: #272727;
+}
+
+.item-container {
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 </style>
