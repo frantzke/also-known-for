@@ -23,7 +23,7 @@ export default {
       { hid: "description", name: "description", content: "" },
       { name: "format-detection", content: "telephone=no" },
     ],
-    link: [{ rel: "icon", type: "image/x-icon", href: "/AKF-Logo.ico" }],
+    link: [{ rel: "icon", type: "image/x-icon", href: "/also-known-for/AKF-Logo.ico" }],
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css

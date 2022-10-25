@@ -1,7 +1,7 @@
 <template>
   <v-col cols="12">
     <div class="d-flex py-4 item-container">
-      <Poster :imageSrc="actor.image" :name="actor.name" @on-click="onClickActor(actor.id)"/>
+      <Poster :imageSrc="actor.image" :name="actor.name" :role="actor.asCharacter" @on-click="onClickActor(actor.id)"/>
       <v-divider dark vertical class="mx-2 primary" />
       <Poster 
         v-for="role in actor.roles" 

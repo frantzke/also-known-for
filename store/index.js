@@ -42,6 +42,15 @@ export const actions = {
       throw new Error(title.errorMessage);
     }
 
+    title.starList.forEach((star) => {
+      // Find star's role in the title
+      const starRole = title.actorList.find((actor) => {
+        return actor.id === star.id
+      });
+      if (starRole) star.asCharacter = starRole.asCharacter;
+      commit("setActor", { actor: star });
+    });
+
     commit("setTitle", { title });
   },
 
@@ -111,8 +120,6 @@ export const actions = {
     actorResults.forEach((actor) => {
       commit("setActor", { actor });
     });
-
-    return actorResults;
   },
 
   resetTitlePage({ commit }) {
@@ -140,6 +147,9 @@ export const mutations = {
   setActor(state, { actor }) {
     //Add roles property
     actor.roles = actor.knownFor || [];
+    // If an actor has an asCharacter value keep it
+    if (state.actors[actor.id])  actor.asCharacter = state.actors[actor.id].asCharacter;
+
     Vue.set(state.actors, actor.id, actor);
   },
 

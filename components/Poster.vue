@@ -9,7 +9,7 @@
     />
     <p class="mb-0 text-subtitle-1">{{ name }}</p>
     <p v-if="role" class="mb-0 text-body-1 font-weight-light primary--text">
-      As {{ role }}
+      As {{ trimmedRole }}
     </p>
   </div>
 </template>
@@ -20,6 +20,13 @@ export default {
     imageSrc: String,
     name: String,
     role: String,
+  },
+  computed: {
+    trimmedRole() {
+      return this.role.length > 100
+        ? this.role.substring(0, 100 - 3) + "..."
+        : this.role;
+    },
   },
 };
 </script>
