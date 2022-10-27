@@ -112,6 +112,10 @@ export const actions = {
       return await response.json();
     });
 
+    if (!actor.knownFor) {
+      throw new Error(actor.errorMessage);
+    }
+
     commit("setActor", { actor });
   },
 
