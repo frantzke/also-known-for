@@ -55,6 +55,7 @@
         large
         text
         append-icon
+        :loading="isLoading"
         class="m-4 primary--text"
         color="primary"
         @click="onMoreActors"
@@ -87,6 +88,7 @@ export default {
       hasError: false,
       errorMessage: "An error occurred",
       showSnackBar: false,
+      isLoading: false,
     };
   },
   computed: {
@@ -114,12 +116,7 @@ export default {
         this.resetTitlePage();
         await this.fetchTitle({ titleId });
 
-        const starList =
-          NODE_ENV === "production"
-            ? [...this.title.starList]
-            : [this.title.starList[0]];
-
-        const starListKeys = starList.map((star) => star.id);
+        const starListKeys = this.title.starList.map((star) => star.id);
         await this.fetchActors({ actorIds: starListKeys });
       } catch (err) {
         this.hasError = true;
@@ -131,13 +128,21 @@ export default {
       this.title = title;
       this.actors = stars;
     },
-    onMoreActors() {
+    async onMoreActors() {
       const index = this.actors.length;
       const nextActors = NODE_ENV === "production" ? 5 : 1;
-      const actors = [...this.title.actorList].slice(index, index + 2);
+      const actors = [...this.title.actorList].slice(index, index + nextActors);
       const actorIds = actors.map((actor) => actor.id);
 
-      this.fetchActors({ actorIds });
+      try {
+        this.isLoading = true;
+        await this.fetchActors({ actorIds });
+      } catch (err) {
+        this.hasError = true;
+        this.errorMsg = err.message;
+      } finally {
+        this.isLoading = false
+      }
     },
     onActorError(message) {
       this.showSnackBar = true;
