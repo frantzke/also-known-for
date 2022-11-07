@@ -35,39 +35,41 @@
       </v-row>
     </v-container>
 
-    <v-divider dark class="my-4 primary" />
+    <div v-if="!hasError">
+      <v-divider dark class="my-4 primary" />
 
-    <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
-    <div class="d-flex py-4 item-container">
-      <Poster
-        v-for="kfor in actor.knownFor"
-        :key="`kfor_${kfor.id}`"
-        :imageSrc="kfor.image"
-        :name="kfor.title"
-        :role="kfor.role"
-        @on-click="onClickTitle(kfor.id)"
-      />
-    </div>
+      <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
+      <div class="d-flex py-4 item-container">
+        <Poster
+          v-for="kfor in actor.knownFor"
+          :key="`kfor_${kfor.id}`"
+          :imageSrc="kfor.image"
+          :name="kfor.title"
+          :role="kfor.role"
+          @on-click="onClickTitle(kfor.id)"
+        />
+      </div>
 
-    <v-divider dark class="my-4 primary" />
+      <v-divider dark class="my-4 primary" />
 
-    <h4 class="mb-2 text-h4 font-weight-light">Movies</h4>
-    <div
-      v-for="(title, index) in actor.castMovies"
-      :key="index"
-      @click="onClickTitle(title.id)"
-    >
-      <v-hover v-slot="{ hover }">
-        <div class="d-flex py-4" :class="{ 'on-hover': hover }">
-          <div>
-            <h3>{{ title.title }} {{ title.year }}</h3>
-            <p class="mb-0 subtitle-1">{{ title.role }}</p>
-            <p class="subtitle-1">{{ title.description }}</p>
+      <h4 class="mb-2 text-h4 font-weight-light">Movies</h4>
+      <div
+        v-for="(title, index) in actor.castMovies"
+        :key="index"
+        @click="onClickTitle(title.id)"
+      >
+        <v-hover v-slot="{ hover }">
+          <div class="d-flex py-4" :class="{ 'on-hover': hover }">
+            <div>
+              <h3>{{ title.title }} {{ title.year }}</h3>
+              <p class="mb-0 subtitle-1">{{ title.role }}</p>
+              <p class="subtitle-1">{{ title.description }}</p>
+            </div>
           </div>
-        </div>
-      </v-hover>
+        </v-hover>
 
-      <v-divider />
+        <v-divider />
+      </div>
     </div>
   </v-container>
 </template>

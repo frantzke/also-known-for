@@ -42,30 +42,43 @@ export const actions = {
       throw new Error(title.errorMessage);
     }
 
+    title.starList.forEach((star) => {
+      // Find star's role in the title
+      const starRole = title.actorList.find((actor) => {
+        return actor.id === star.id;
+      });
+      if (starRole) star.asCharacter = starRole.asCharacter;
+      commit("setActor", { actor: star });
+    });
+
     commit("setTitle", { title });
   },
 
   async fetchActorTitles({ commit, state }, { actorId, titleIds }) {
     const actor = state.actors[actorId];
-    
-    // Sort titles by date
-    const castMovies = [...actor.castMovies].sort((a,b) => {
-      const aYear = a.year === "" ? 0 : parseInt(a.year);
-      const bYear = b.year === "" ? 0 : parseInt(b.year);
-      return bYear - aYear;
-    });
+    //Filter and sort all movies
+    const actorMovies = actor.castMovies
+      .filter((movie) => movie.role === "Actor")
+      .sort((a, b) => {
+        const aYear = a.year === "" ? 0 : parseInt(a.year);
+        const bYear = b.year === "" ? 0 : parseInt(b.year);
+        return bYear - aYear;
+      });
+
     //Filter down to 5 more roles
-    const index = actor.roles ? actor.roles.length : 0;
-    const roleKeys = castMovies
-      .slice(index, index + 5)
-      .map((role) => role.id);
+    const index = actor.roles.length - actor.knownFor.length || 0;
+
+    // const index = actor.roles ? actor.roles.length - 1 : 0;
+    const roleKeys = actorMovies.slice(index, index + 5).map((role) => role.id);
     //Filter out roles we have already seen
     const fetchedRoleKeys = actor.roles.map((role) => role.id);
     const additionalTitles = roleKeys.filter(
       (key) => !fetchedRoleKeys.includes(key)
     );
+    //Remove duplicates
+    const titleSet = new Set(additionalTitles);
 
-    const promises = additionalTitles.map((id) => {
+    const promises = Array.from(titleSet).map((id) => {
       const url = `${BASE_URL}/Title/${API_KEY}/${id}/FullActor`;
       return fetch(url).then(async (response) => await response.json());
     });
@@ -73,7 +86,7 @@ export const actions = {
 
     const results = titleResults.filter((title) => title.actorList);
 
-    if (results === []) {
+    if (results.length === 0) {
       const result = titleResults.pop();
       throw new Error(result.errorMessage);
     }
@@ -99,20 +112,38 @@ export const actions = {
       return await response.json();
     });
 
-    commit("setActor", { actor })
+    if (!actor.knownFor) {
+      throw new Error(actor.errorMessage);
+    }
+
+    commit("setActor", { actor });
   },
 
-  async fetchActors({ commit }, { actorIds }) {
+  async fetchActors({ commit, state }, { actorIds }) {
     const promises = actorIds.map((id) => {
       const url = `${BASE_URL}/Name/${API_KEY}/${id}`;
       return fetch(url).then(async (response) => await response.json());
     });
     const actorResults = await Promise.all(promises);
-    actorResults.forEach((actor) => {
-      commit("setActor", { actor });
+
+    const results = actorResults.filter((actor) => actor.castMovies);
+    if (results.length === 0) {
+      const result = actorResults.pop();
+      throw new Error(result.errorMessage);
+    }
+
+    // Find actor's role for current title
+    results.forEach((actor) => {
+      // Find star's role in the title
+      const actorRole = state.title.actorList.find((actorItem) => {
+        return actorItem.id === actor.id;
+      });
+      if (actorRole) actor.asCharacter = actorRole.asCharacter;
     });
 
-    return actorResults;
+    results.forEach((actor) => {
+      commit("setActor", { actor });
+    });
   },
 
   resetTitlePage({ commit }) {
@@ -120,9 +151,9 @@ export const actions = {
     commit("resetActors");
   },
 
-  resetSearchPage({commit}) {
-    commit("resetTitles")
-  }
+  resetSearchPage({ commit }) {
+    commit("resetTitles");
+  },
 };
 
 export const mutations = {
@@ -140,6 +171,11 @@ export const mutations = {
   setActor(state, { actor }) {
     //Add roles property
     actor.roles = actor.knownFor || [];
+    // If an actor has an asCharacter value keep it
+    if (state.actors[actor.id]) {
+      actor.asCharacter = state.actors[actor.id].asCharacter;
+    }
+
     Vue.set(state.actors, actor.id, actor);
   },
 
@@ -160,7 +196,7 @@ export const mutations = {
 
   resetTitles(state) {
     Vue.set(state, "titles", {});
-  }
+  },
 };
 
 // root getters
