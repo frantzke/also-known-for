@@ -58,7 +58,7 @@ export const actions = {
     const actor = state.actors[actorId];
     //Filter and sort all movies
     const actorMovies = actor.castMovies
-      .filter((movie) => movie.role === "Actor")
+      .filter((movie) => movie.role === "Actor" || movie.role === "Actress")
       .sort((a, b) => {
         const aYear = a.year === "" ? 0 : parseInt(a.year);
         const bYear = b.year === "" ? 0 : parseInt(b.year);
@@ -88,7 +88,7 @@ export const actions = {
 
     if (results.length === 0) {
       const result = titleResults.pop();
-      throw new Error(result.errorMessage);
+      throw new Error(result?.errorMessage || "Something went wrong");
     }
 
     const roles = results.map((title) => {
