@@ -15,11 +15,16 @@ export const actions = {
     if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
 
     const encodedText = encodeURIComponent(searchText);
-    const url = `${BASE_URL}/SearchTitle/${API_KEY}/${encodedText}`;
-    const data = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/search/multi?query=${encodedText}&include_adult=false&language=en-US&page=1`;
+    const data = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
     });
     const { results } = data;
+    console.log(results);
 
     if (results === null) {
       // data.errorMessage === 'Server busy' || 'Maximum usage (107 of 100 per day)'
@@ -33,23 +38,29 @@ export const actions = {
     if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
 
     const encodedText = encodeURIComponent(titleId);
-    const url = `${BASE_URL}/Title/${API_KEY}/${encodedText}`;
-    const title = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/movie/${encodedText}?append_to_response=credits`;
+    const title = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
     });
+    console.log("fetchTitle ~ title:", title);
+    // debugger;
 
     if (title.starList === null) {
       throw new Error(title.errorMessage);
     }
 
-    title.starList.forEach((star) => {
-      // Find star's role in the title
-      const starRole = title.actorList.find((actor) => {
-        return actor.id === star.id;
-      });
-      if (starRole) star.asCharacter = starRole.asCharacter;
-      commit("setActor", { actor: star });
-    });
+    // title.starList.forEach((star) => {
+    //   // Find star's role in the title
+    //   const starRole = title.actorList.find((actor) => {
+    //     return actor.id === star.id;
+    //   });
+    //   if (starRole) star.asCharacter = starRole.asCharacter;
+    //   commit("setActor", { actor: star });
+    // });
 
     commit("setTitle", { title });
   },

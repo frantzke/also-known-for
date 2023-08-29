@@ -12,8 +12,8 @@
       <v-row>
         <v-col cols="12" sm="6" md="3">
           <v-img
-            :src="title.image"
-            :alt="`movie poster for ${title.fullTitle}`"
+            :src="imageSrc"
+            :alt="`movie poster for ${title.title}`"
             lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
             contain
             width="100%"
@@ -22,19 +22,23 @@
         </v-col>
         <v-col cols="12" sm="6" md="9" class="text-left">
           <h2 v-if="$vuetify.breakpoint.smAndDown" class="text-h4 mb-2">
-            {{ title.fullTitle }}
+            {{ title.title }}
           </h2>
-          <h2 v-else class="text-h2 mb-2">{{ title.fullTitle }}</h2>
+          <h2 v-else class="text-h2 mb-2">{{ title.title }}</h2>
           <v-divider dark class="my-2" />
-          <p>{{ title.plot }}</p>
+          <p>{{ title.tagline }}</p>
+          <v-divider dark class="my-2" />
+          <p>{{ title.overview }}</p>
+          <v-divider dark class="my-2" />
+          <p>{{ title.release_date }}</p>
           <v-divider dark class="my-2" />
           <p>{{ title.genres }}</p>
           <v-divider dark class="my-2" />
-          <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
+          <!-- <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
           <v-divider dark class="my-2" v-if="hasDirectors" />
           <p v-if="hasWriters">Writers: {{ title.writers }}</p>
           <v-divider dark class="my-2" v-if="hasWriters" />
-          <p>{{ title.awards }}</p>
+          <p>{{ title.awards }}</p> -->
         </v-col>
       </v-row>
     </v-container>
@@ -43,14 +47,14 @@
 
     <v-row no-gutters>
       <ActorItem
-        v-for="actor in actors"
+        v-for="actor in cast"
         :key="actor.id"
         :actor="actor"
         @error="onActorError"
       />
     </v-row>
 
-    <div class="d-flex justify-center" v-if="!hasError">
+    <!-- <div class="d-flex justify-center" v-if="!hasError">
       <v-btn
         large
         text
@@ -63,7 +67,7 @@
         More Cast
         <v-icon color="primary" right large> mdi-menu-down </v-icon>
       </v-btn>
-    </div>
+    </div> -->
 
     <v-snackbar v-model="showSnackBar" color="red" timeout="3500">
       {{ errorMessage }}
@@ -93,6 +97,16 @@ export default {
   },
   computed: {
     ...mapGetters(["title", "actors"]),
+    imageSrc() {
+      if (this?.title?.poster_path) {
+        return `https://image.tmdb.org/t/p/w500${this.title.poster_path}`;
+      } else {
+        return null;
+      }
+    },
+    cast() {
+      return this.title?.credits?.cast || [];
+    },
     hasDirectors() {
       return this.title?.directors?.length > 0;
     },
@@ -116,8 +130,9 @@ export default {
         this.resetTitlePage();
         await this.fetchTitle({ titleId });
 
-        const starListKeys = this.title.starList.map((star) => star.id);
-        await this.fetchActors({ actorIds: starListKeys });
+        // debugger;
+        // const starListKeys = this.title.starList.map((star) => star.id);
+        // await this.fetchActors({ actorIds: starListKeys });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;

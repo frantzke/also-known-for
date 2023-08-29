@@ -3,7 +3,7 @@
     <v-hover v-slot="{ hover }">
       <div class="d-flex py-4" :class="{ 'on-hover': hover }">
         <v-img
-          :src="title.image"
+          :src="`https://image.tmdb.org/t/p/w500/${title.poster_path}`"
           :alt="`Poster for ${title.title}`"
           lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
           contain
@@ -11,7 +11,7 @@
           max-width="6rem"
         />
         <div class="px-4 py-2">
-          <h2>{{ title.title }}</h2>
+          <h2>{{ title.name || title.title }}</h2>
           <p class="subtitle-1 font-weight-light">{{ title.description }}</p>
         </div>
       </div>
