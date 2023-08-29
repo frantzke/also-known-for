@@ -26,6 +26,10 @@ export const actions = {
       throw Error(data.errorMessage);
     }
 
+    if (!results) {
+      throw Error("Search failed");
+    }
+
     commit("setTitles", { titles: results });
   },
 
@@ -158,6 +162,9 @@ export const actions = {
 
 export const mutations = {
   setTitles(state, { titles }) {
+    if (!titles) {
+      throw Error("No Titles to set");
+    }
     const titlesById = Object.fromEntries(
       titles.map((title) => [title.id, title])
     );

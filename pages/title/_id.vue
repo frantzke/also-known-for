@@ -115,8 +115,8 @@ export default {
       try {
         this.resetTitlePage();
         await this.fetchTitle({ titleId });
-
-        const starListKeys = this.title.starList.map((star) => star.id);
+        const starListKeys =
+          this?.title?.starList?.map((star) => star.id) || [];
         await this.fetchActors({ actorIds: starListKeys });
       } catch (err) {
         this.hasError = true;
@@ -141,7 +141,7 @@ export default {
         this.hasError = true;
         this.errorMsg = err.message;
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
     onActorError(message) {
