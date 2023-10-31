@@ -24,7 +24,6 @@ export const actions = {
       return await response.json();
     });
     const { results } = data;
-    console.log(results);
 
     if (results === null) {
       // data.errorMessage === 'Server busy' || 'Maximum usage (107 of 100 per day)'
@@ -212,7 +211,13 @@ export const mutations = {
 
 // root getters
 export const getters = {
-  titles: (state) => Object.values(state.titles),
+  titles: (state) => {
+    const titles = Object.values(state.titles);
+    titles.sort((a, b) => {
+      return b.popularity - a.popularity;
+    });
+    return titles;
+  },
   title: (state) => state.title,
   titleById: (state) => (id) => state.titles[id],
   actor: (state) => state.actor,
