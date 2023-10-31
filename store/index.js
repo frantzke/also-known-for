@@ -52,10 +52,11 @@ export const actions = {
     //   throw new Error(title.errorMessage);
     // }
 
+    //Preserve order of cast
     title.credits.cast.forEach((actor, index) => {
       actor.order = index;
-      commit("setActor", { actor });
     });
+    commit("setActors", { actors: title.credits.cast });
     // title.starList.forEach((star) => {
     //   // Find star's role in the title
     //   const starRole = title.actorList.find((actor) => {
@@ -120,15 +121,20 @@ export const actions = {
   },
 
   async fetchActor({ commit }, { actorId }) {
+    //TODO: Check if actor is already in state
     const encodedText = encodeURIComponent(actorId);
-    const url = `${BASE_URL}/Name/${API_KEY}/${encodedText}`;
-    const actor = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/person/${encodedText}?append_to_response=movie_credits&language=en-US`;
+    const actor = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
     });
-
-    if (!actor.knownFor) {
-      throw new Error(actor.errorMessage);
-    }
+    console.log("fetchActor ~ actor:", actor);
+    // if (!actor.knownFor) {
+    //   throw new Error(actor.errorMessage);
+    // }
 
     commit("setActor", { actor });
   },
@@ -146,13 +152,13 @@ export const actions = {
       //TODO: Use AllSettled
       const actorResults = await Promise.all(promises);
       console.log(actorResults);
-  
+
       // const results = actorResults.filter((actor) => actor?.movie_credits?.cast);
       // if (results.length === 0) {
       //   const result = actorResults.pop();
       //   throw new Error(result.errorMessage);
       // }
-  
+
       // Find actor's role for current title
       // results.forEach((actor) => {
       //   // Find star's role in the title
@@ -161,10 +167,10 @@ export const actions = {
       //   });
       //   if (actorRole) actor.character = actorRole.character;
       // });
-  
-      actorResults.forEach((actor) => {
-        commit("setActor", { actor });
-      });
+
+      commit("setActors", { actors: actorResults });
+      // actorResults.forEach((actor) => {
+      // });
     } catch (error) {
       throw error;
     }
@@ -192,9 +198,27 @@ export const mutations = {
     Vue.set(state, "title", title);
   },
 
-  setActor(state, { actor }) {
-    
+  setActors(state, { actors }) {
+    actors.forEach((actor) => {
+      //Add roles property
+      actor.roles = actor?.movie_credits?.cast || [];
+      //Sort roles by popularity
+      actor.roles.sort((a, b) => {
+        return b.popularity - a.popularity;
+      });
 
+      // Keep Old Properties
+      const oldActor = state.actors[actor.id] || {};
+      const newActor = {
+        ...oldActor,
+        ...actor,
+      };
+
+      Vue.set(state.actors, newActor.id, newActor);
+    });
+  },
+
+  setActor(state, { actor }) {
     //Add roles property
     actor.roles = actor?.movie_credits?.cast || [];
     //Sort roles by popularity
@@ -202,14 +226,7 @@ export const mutations = {
       return b.popularity - a.popularity;
     });
 
-    // Keep Old Properties
-    const oldActor = state.actors[actor.id] || {};
-    const newActor = {
-      ...oldActor,
-      ...actor,
-    }
-
-    Vue.set(state.actors, newActor.id, newActor);
+    Vue.set(state, "actor", actor);
   },
 
   addActorRoles(state, { actorId, roles }) {
@@ -247,7 +264,7 @@ export const getters = {
   actors: (state) => {
     const actors = Object.values(state.actors);
     actors.sort((a, b) => {
-      return a.order- b.order;
+      return a.order - b.order;
     });
     return actors;
   },

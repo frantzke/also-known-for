@@ -1,18 +1,27 @@
 <template>
   <v-col cols="12">
     <div class="d-flex py-4 item-container">
-      <Poster :imageSrc="imageSrc" :name="actor.name" :role="actor.character" @on-click="onClickActor(actor.id)"/>
+      <Poster
+        :imageSrc="imageSrc"
+        :name="actor.name"
+        :role="actor.character"
+        @on-click="onClickActor(actor.id)"
+      />
       <v-divider dark vertical class="mx-2 primary" />
-      <Poster 
-        v-for="role in actor.roles" 
-        :key="role.id" 
-        :imageSrc="getRoleImage(role.poster_path)" 
-        :name="role.title" 
+      <Poster
+        v-for="(role, index) in actor.roles"
+        :key="`${actor.id}-${role.id}-${index}`"
+        :imageSrc="getRoleImage(role.poster_path)"
+        :name="role.title"
         :role="role.character"
         @on-click="onClickTitle(role.id)"
       />
       <div class="d-flex align-center">
-        <v-progress-circular v-if="actor.roles.length === 0" indeterminate color="primary"/>
+        <v-progress-circular
+          v-if="actor.roles.length === 0"
+          indeterminate
+          color="primary"
+        />
         <!-- <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon> -->
       </div>
     </div>
@@ -23,7 +32,7 @@
 <script>
 import { mapActions } from "vuex";
 
-import Poster from './Poster.vue';
+import Poster from "./Poster.vue";
 
 export default {
   name: "ActorItem",
@@ -31,12 +40,12 @@ export default {
     actor: Object,
   },
   components: {
-    Poster
+    Poster,
   },
   data() {
     return {
-      isLoading: false
-    }
+      isLoading: false,
+    };
   },
   computed: {
     imageSrc() {
@@ -48,7 +57,7 @@ export default {
     },
     hasNoRoles() {
       return this.actor.roles.length === 0;
-    }
+    },
   },
   methods: {
     ...mapActions(["fetchActorTitles"]),
@@ -62,20 +71,20 @@ export default {
       if (posterPath) {
         return `https://image.tmdb.org/t/p/w185${posterPath}`;
       } else {
-        return "nopicture.jpg"
+        return "nopicture.jpg";
       }
     },
     async onAddRoles() {
       try {
         this.isLoading = true;
-        await this.fetchActorTitles({actorId: this.actor.id});
+        await this.fetchActorTitles({ actorId: this.actor.id });
       } catch (err) {
         console.log(err.message);
         this.$emit("error", err.message);
       } finally {
         this.isLoading = false;
       }
-    }
+    },
   },
 };
 </script>
@@ -85,14 +94,13 @@ export default {
   overflow-y: hidden;
 }
 
-::-webkit-scrollbar{
-        height: 0.75rem;
-        width: 0.75rem;
-        background: #000;
-    }
-    ::-webkit-scrollbar-thumb:horizontal{
-        background: #fbc02d;
-        border-radius: 10px;
-    }
-
+::-webkit-scrollbar {
+  height: 0.75rem;
+  width: 0.75rem;
+  background: #000;
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: #fbc02d;
+  border-radius: 10px;
+}
 </style>

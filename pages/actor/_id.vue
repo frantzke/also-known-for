@@ -10,36 +10,45 @@
 
     <v-container v-else>
       <v-row>
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="4">
           <v-img
-            :src="actor.image"
+            :src="imageSrc"
             :alt="`photo of ${actor.name}`"
-            lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
+            lazy-src="nopicture.jpg"
             contain
             width="100%"
             aspect-ratio="2/3"
           />
         </v-col>
-        <v-col cols="12" sm="6" md="9" class="text-left">
+        <v-col cols="12" sm="6" md="8" class="text-left">
           <h2 v-if="$vuetify.breakpoint.smAndDown" class="text-h3 mb-2">
             {{ actor.name }}
           </h2>
           <h2 v-else class="text-h2 mb-2">{{ actor.name }}</h2>
           <v-divider dark class="my-2" />
-          <p>{{ actor.summary }}</p>
+          <p>{{ actor.biography }}</p>
           <v-divider dark class="my-2" />
-          <p>{{ actor.role }}</p>
+          <v-chip outlined dark color="primary" class="mr-2">
+            {{ actor.known_for_department }}
+          </v-chip>
           <v-divider dark class="my-2" />
-          <p>{{ actor.awards }}</p>
+          <!-- TODO: Format Date -->
+          <p>Born: {{ actor.birthday }}</p>
+          <div v-if="actor.deathday">
+            <v-divider dark class="my-2" />
+            <p>Death: {{ actor.deathday }}</p>
+          </div>
+          <v-divider dark class="my-2" />
+          <p>Born: {{ actor.place_of_birth }}</p>
         </v-col>
       </v-row>
     </v-container>
 
     <div v-if="!hasError">
-      <v-divider dark class="my-4 primary" />
+      <!-- <v-divider dark class="my-4 primary" /> -->
 
-      <h4 class="mb-2 text-h4 font-weight-light">Known For</h4>
-      <div class="d-flex py-4 item-container">
+      <!-- <h4 class="mb-2 text-h4 font-weight-light">Known For</h4> -->
+      <!-- <div class="d-flex py-4 item-container">
         <Poster
           v-for="kfor in actor.knownFor"
           :key="`kfor_${kfor.id}`"
@@ -48,13 +57,59 @@
           :role="kfor.role"
           @on-click="onClickTitle(kfor.id)"
         />
-      </div>
+      </div> -->
 
       <v-divider dark class="my-4 primary" />
 
-      <h4 class="mb-2 text-h4 font-weight-light">Movies</h4>
-      <div
-        v-for="(title, index) in actor.castMovies"
+      <h4 class="mb-2 text-h4 font-weight-light">Cast Credits</h4>
+
+      <v-container>
+        <v-row>
+          <v-col
+            v-for="role in actor.roles"
+            class="d-flex child-flex"
+            lg="2"
+            md="3"
+            sm="4"
+          >
+            <Poster
+              :key="role.id"
+              :imageSrc="getRoleImage(role.poster_path)"
+              :name="role.title"
+              :role="role.character"
+              @on-click="onClickTitle(role.id)"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
+
+      <v-divider dark class="my-4 primary" />
+
+      <h4 class="mb-2 text-h4 font-weight-light">Crew Credits</h4>
+
+      <v-container>
+        <v-row>
+          <v-col
+            v-for="credit in crew"
+            class="d-flex child-flex"
+            lg="2"
+            md="3"
+            sm="4"
+          >
+            <Poster
+              :key="credit.id"
+              :imageSrc="getRoleImage(credit.poster_path)"
+              :name="credit.title"
+              :role="credit.job"
+              @on-click="onClickTitle(role.id)"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
+
+      <!-- <TitleItem v-for="title in actor.roles" :key="title.id" :title="title" /> -->
+      <!-- <div
+        v-for="(title, index) in actor.roles"
         :key="index"
         @click="onClickTitle(title.id)"
       >
@@ -69,7 +124,7 @@
         </v-hover>
 
         <v-divider />
-      </div>
+      </div> -->
     </div>
   </v-container>
 </template>
@@ -79,11 +134,13 @@ import mockData from "@/helpers/mockData";
 import { mapGetters, mapActions } from "vuex";
 
 import Poster from "@/components/Poster.vue";
+import TitleItem from "@/components/Title-Item.vue";
 
 export default {
   name: "ActorPage",
   components: {
     Poster,
+    TitleItem,
   },
   data() {
     return {
@@ -94,12 +151,27 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["actorById"]),
-    actor() {
-      const actorId = this.$route.params.id;
-      const actor = this.actorById(actorId);
-      return actor ? actor : {};
+    ...mapGetters(["actor"]),
+    imageSrc() {
+      if (this?.actor?.profile_path) {
+        return `https://image.tmdb.org/t/p/w500${this.actor.profile_path}`;
+      } else {
+        return "nopicture.jpg";
+      }
     },
+    crew() {
+      //TODO: Fix this
+      const crew = this?.actor?.movie_credits?.crew || [];
+      const copyOfCrew = [...crew];
+      copyOfCrew.sort((a, b) => b.popularity - a.popularity);
+      return copyOfCrew;
+    },
+    // actor() {
+    //   const actorId = this.$route.params.id;
+    //   console.log("actor ~ actorId:", actorId);
+    //   const actor = this.actorById(actorId);
+    //   return actor ? actor : {};
+    // },
   },
   created() {
     this.init();
@@ -114,16 +186,26 @@ export default {
 
       try {
         await this.fetchActor({ actorId });
+        console.log("Fetched Actor");
+
+        console.log(this.actor);
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
       }
     },
-    getMockData() {
-      const { stars } = mockData();
-      this.actor = stars[1];
-      this.movies = this.actor.castMovies.slice(0, 10);
+    getRoleImage(posterPath) {
+      if (posterPath) {
+        return `https://image.tmdb.org/t/p/w185${posterPath}`;
+      } else {
+        return "nopicture.jpg";
+      }
     },
+    // getMockData() {
+    //   const { stars } = mockData();
+    //   this.actor = stars[1];
+    //   this.movies = this.actor.castMovies.slice(0, 10);
+    // },
     onClickTitle(id) {
       this.$router.push(`/title/${id}`);
     },

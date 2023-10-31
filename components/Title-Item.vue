@@ -29,6 +29,8 @@ export default {
     posterPath() {
       if (this.title.poster_path) {
         return `https://image.tmdb.org/t/p/w185${this.title.poster_path}`;
+      } else if (this.title.profile_path){
+        return `https://image.tmdb.org/t/p/w185${this.title.profile_path}`;
       } else {
         return "nopicture.jpg";
       }
