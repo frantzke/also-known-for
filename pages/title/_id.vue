@@ -106,6 +106,7 @@ export default {
       errorMessage: "An error occurred",
       showSnackBar: false,
       isLoading: false,
+      fetchActorInterval: null,
     };
   },
   computed: {
@@ -121,9 +122,6 @@ export default {
       if (!this?.title?.title) return "";
       return `${this.title.title} (${this.title.release_date.split("-")[0]})`;
     },
-    // cast() {
-    //   return this.title?.credits?.cast || [];
-    // },
     directors() {
       if (!this.title?.credits?.crew) return "";
       const directors = this.title.credits.crew.filter(
@@ -150,6 +148,11 @@ export default {
     this.init();
     // this.getMockData();
   },
+  beforeRouteLeave(to, from, next) {
+    // Clear interval
+    this.fetchActorInterval && clearInterval(this.fetchActorInterval);
+    next();
+  },
   methods: {
     ...mapActions(["fetchTitle", "fetchActors", "resetTitlePage"]),
     async init() {
@@ -164,21 +167,39 @@ export default {
 
         console.log(this.title);
         const allActors = this?.title?.credits?.cast || [];
-        const actors = allActors.slice(0, 5);
+        const index = 5;
+        const actors = allActors.slice(0, index);
+
         await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
-        // debugger;
-        // const starListKeys = this.title.starList.map((star) => star.id);
-        // await this.fetchActors({ actorIds: starListKeys });
+
+        // Fetch the rest of the actors on an interval
+        this.queueFetchAllActors(index);
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
       }
     },
-    getMockData() {
-      const { title, stars } = mockData();
-      this.title = title;
-      this.actors = stars;
+    queueFetchAllActors(start) {
+      const allActors = this?.title?.credits?.cast || [];
+      let currStart = start;
+      let currEnd;
+
+      this.fetchActorInterval = setInterval(async () => {
+        currEnd = currStart + 5;
+        if (currEnd >= allActors.length) currEnd = undefined;
+        const actors = allActors.slice(currStart, currEnd);
+        await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
+        currStart = currEnd;
+        if (currEnd === undefined) {
+          clearInterval(this.fetchActorInterval);
+        }
+      }, 5000);
     },
+    // getMockData() {
+    //   const { title, stars } = mockData();
+    //   this.title = title;
+    //   this.actors = stars;
+    // },
     async onMoreActors() {
       const index = this.actors.length;
       const nextActors = NODE_ENV === "production" ? 5 : 1;

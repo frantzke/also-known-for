@@ -5,7 +5,7 @@ import { BASE_URL, API_KEY } from "../env";
 export const state = () => ({
   titles: {},
   title: {},
-  stars: [],
+  stars: [], //TODO: Remove Stars
   actor: {},
   actors: {},
 });
@@ -193,18 +193,23 @@ export const mutations = {
   },
 
   setActor(state, { actor }) {
+    
+
     //Add roles property
     actor.roles = actor?.movie_credits?.cast || [];
     //Sort roles by popularity
     actor.roles.sort((a, b) => {
       return b.popularity - a.popularity;
     });
-    // Keep Order
-    if (state.actors[actor.id]) {
-      actor.order = state.actors[actor.id].order;
+
+    // Keep Old Properties
+    const oldActor = state.actors[actor.id] || {};
+    const newActor = {
+      ...oldActor,
+      ...actor,
     }
 
-    Vue.set(state.actors, actor.id, actor);
+    Vue.set(state.actors, newActor.id, newActor);
   },
 
   addActorRoles(state, { actorId, roles }) {

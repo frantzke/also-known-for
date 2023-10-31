@@ -11,10 +11,10 @@
         :role="role.character"
         @on-click="onClickTitle(role.id)"
       />
-      <!-- <div class="d-flex align-center">
-        <v-progress-circular v-if="isLoading" indeterminate color="primary"/>
-        <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon>
-      </div> -->
+      <div class="d-flex align-center">
+        <v-progress-circular v-if="actor.roles.length === 0" indeterminate color="primary"/>
+        <!-- <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon> -->
+      </div>
     </div>
 
     <v-divider />
@@ -46,6 +46,9 @@ export default {
         return "nopicture.jpg";
       }
     },
+    hasNoRoles() {
+      return this.actor.roles.length === 0;
+    }
   },
   methods: {
     ...mapActions(["fetchActorTitles"]),
@@ -83,12 +86,12 @@ export default {
 }
 
 ::-webkit-scrollbar{
-        height: 1rem;
-        width: 1rem;
-        background: gray;
+        height: 0.75rem;
+        width: 0.75rem;
+        background: #000;
     }
     ::-webkit-scrollbar-thumb:horizontal{
-        background: #FFF;
+        background: #fbc02d;
         border-radius: 10px;
     }
 
