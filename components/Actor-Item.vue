@@ -1,20 +1,20 @@
 <template>
   <v-col cols="12">
     <div class="d-flex py-4 item-container">
-      <Poster :imageSrc="actor.image" :name="actor.name" :role="actor.asCharacter" @on-click="onClickActor(actor.id)"/>
+      <Poster :imageSrc="imageSrc" :name="actor.name" :role="actor.character" @on-click="onClickActor(actor.id)"/>
       <v-divider dark vertical class="mx-2 primary" />
       <Poster 
         v-for="role in actor.roles" 
         :key="role.id" 
-        :imageSrc="role.image" 
+        :imageSrc="getRoleImage(role.poster_path)" 
         :name="role.title" 
-        :role="role.role"
+        :role="role.character"
         @on-click="onClickTitle(role.id)"
       />
-      <div class="d-flex align-center">
+      <!-- <div class="d-flex align-center">
         <v-progress-circular v-if="isLoading" indeterminate color="primary"/>
         <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon>
-      </div>
+      </div> -->
     </div>
 
     <v-divider />
@@ -38,6 +38,15 @@ export default {
       isLoading: false
     }
   },
+  computed: {
+    imageSrc() {
+      if (this?.actor?.profile_path) {
+        return `https://image.tmdb.org/t/p/w185${this.actor.profile_path}`;
+      } else {
+        return "nopicture.jpg";
+      }
+    },
+  },
   methods: {
     ...mapActions(["fetchActorTitles"]),
     onClickActor(id) {
@@ -45,6 +54,13 @@ export default {
     },
     onClickTitle(id) {
       this.$router.push(`/title/${id}`);
+    },
+    getRoleImage(posterPath) {
+      if (posterPath) {
+        return `https://image.tmdb.org/t/p/w185${posterPath}`;
+      } else {
+        return "nopicture.jpg"
+      }
     },
     async onAddRoles() {
       try {
@@ -65,5 +81,15 @@ export default {
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+::-webkit-scrollbar{
+        height: 1rem;
+        width: 1rem;
+        background: gray;
+    }
+    ::-webkit-scrollbar-thumb:horizontal{
+        background: #FFF;
+        border-radius: 10px;
+    }
 
 </style>

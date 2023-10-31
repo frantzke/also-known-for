@@ -48,10 +48,14 @@ export const actions = {
     console.log("fetchTitle ~ title:", title);
     // debugger;
 
-    if (title.starList === null) {
-      throw new Error(title.errorMessage);
-    }
+    // if (title.starList === null) {
+    //   throw new Error(title.errorMessage);
+    // }
 
+    title.credits.cast.forEach((actor, index) => {
+      actor.order = index;
+      commit("setActor", { actor });
+    });
     // title.starList.forEach((star) => {
     //   // Find star's role in the title
     //   const starRole = title.actorList.find((actor) => {
@@ -130,30 +134,40 @@ export const actions = {
   },
 
   async fetchActors({ commit, state }, { actorIds }) {
-    const promises = actorIds.map((id) => {
-      const url = `${BASE_URL}/Name/${API_KEY}/${id}`;
-      return fetch(url).then(async (response) => await response.json());
-    });
-    const actorResults = await Promise.all(promises);
-
-    const results = actorResults.filter((actor) => actor.castMovies);
-    if (results.length === 0) {
-      const result = actorResults.pop();
-      throw new Error(result.errorMessage);
-    }
-
-    // Find actor's role for current title
-    results.forEach((actor) => {
-      // Find star's role in the title
-      const actorRole = state.title.actorList.find((actorItem) => {
-        return actorItem.id === actor.id;
+    try {
+      const promises = actorIds.map((id) => {
+        const url = `${BASE_URL}/person/${id}?append_to_response=movie_credits&language=en-US`;
+        return fetch(url, {
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+          },
+        }).then(async (response) => await response.json());
       });
-      if (actorRole) actor.asCharacter = actorRole.asCharacter;
-    });
-
-    results.forEach((actor) => {
-      commit("setActor", { actor });
-    });
+      //TODO: Use AllSettled
+      const actorResults = await Promise.all(promises);
+      console.log(actorResults);
+  
+      // const results = actorResults.filter((actor) => actor?.movie_credits?.cast);
+      // if (results.length === 0) {
+      //   const result = actorResults.pop();
+      //   throw new Error(result.errorMessage);
+      // }
+  
+      // Find actor's role for current title
+      // results.forEach((actor) => {
+      //   // Find star's role in the title
+      //   const actorRole = state.title.actorList.find((actorItem) => {
+      //     return actorItem.id === actor.id;
+      //   });
+      //   if (actorRole) actor.character = actorRole.character;
+      // });
+  
+      actorResults.forEach((actor) => {
+        commit("setActor", { actor });
+      });
+    } catch (error) {
+      throw error;
+    }
   },
 
   resetTitlePage({ commit }) {
@@ -180,10 +194,14 @@ export const mutations = {
 
   setActor(state, { actor }) {
     //Add roles property
-    actor.roles = actor.knownFor || [];
-    // If an actor has an asCharacter value keep it
+    actor.roles = actor?.movie_credits?.cast || [];
+    //Sort roles by popularity
+    actor.roles.sort((a, b) => {
+      return b.popularity - a.popularity;
+    });
+    // Keep Order
     if (state.actors[actor.id]) {
-      actor.asCharacter = state.actors[actor.id].asCharacter;
+      actor.order = state.actors[actor.id].order;
     }
 
     Vue.set(state.actors, actor.id, actor);
@@ -221,6 +239,12 @@ export const getters = {
   title: (state) => state.title,
   titleById: (state) => (id) => state.titles[id],
   actor: (state) => state.actor,
-  actors: (state) => Object.values(state.actors),
+  actors: (state) => {
+    const actors = Object.values(state.actors);
+    actors.sort((a, b) => {
+      return a.order- b.order;
+    });
+    return actors;
+  },
   actorById: (state) => (id) => state.actors[id],
 };

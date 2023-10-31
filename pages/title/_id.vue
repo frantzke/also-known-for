@@ -52,11 +52,6 @@
             <v-divider dark class="my-2" />
             <p>Status: {{ title.status }}</p>
           <p>Revenue: {{ title.revenue }}</p> -->
-          <!-- <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
-          <v-divider dark class="my-2" v-if="hasDirectors" />
-          <p v-if="hasWriters">Writers: {{ title.writers }}</p>
-          <v-divider dark class="my-2" v-if="hasWriters" />
-          <p>{{ title.awards }}</p> -->
         </v-col>
       </v-row>
     </v-container>
@@ -65,7 +60,7 @@
 
     <v-row no-gutters>
       <ActorItem
-        v-for="actor in cast"
+        v-for="actor in actors"
         :key="actor.id"
         :actor="actor"
         @error="onActorError"
@@ -126,9 +121,9 @@ export default {
       if (!this?.title?.title) return "";
       return `${this.title.title} (${this.title.release_date.split("-")[0]})`;
     },
-    cast() {
-      return this.title?.credits?.cast || [];
-    },
+    // cast() {
+    //   return this.title?.credits?.cast || [];
+    // },
     directors() {
       if (!this.title?.credits?.crew) return "";
       const directors = this.title.credits.crew.filter(
@@ -167,6 +162,10 @@ export default {
         this.resetTitlePage();
         await this.fetchTitle({ titleId });
 
+        console.log(this.title);
+        const allActors = this?.title?.credits?.cast || [];
+        const actors = allActors.slice(0, 5);
+        await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
         // debugger;
         // const starListKeys = this.title.starList.map((star) => star.id);
         // await this.fetchActors({ actorIds: starListKeys });
