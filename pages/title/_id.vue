@@ -10,30 +10,48 @@
 
     <v-container v-else>
       <v-row>
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="4">
           <v-img
             :src="imageSrc"
             :alt="`movie poster for ${title.title}`"
-            lazy-src="https://imdb-api.com/images/original/nopicture.jpg"
+            lazy-src="nopicture.jpg"
             contain
             width="100%"
             aspect-ratio="2/3"
           />
         </v-col>
-        <v-col cols="12" sm="6" md="9" class="text-left">
+        <v-col cols="12" sm="6" md="8" class="text-left">
           <h2 v-if="$vuetify.breakpoint.smAndDown" class="text-h4 mb-2">
-            {{ title.title }}
+            {{ headerTitle }}
           </h2>
-          <h2 v-else class="text-h2 mb-2">{{ title.title }}</h2>
-          <v-divider dark class="my-2" />
-          <p>{{ title.tagline }}</p>
+          <h2 v-else class="text-h2 mb-2">{{ headerTitle }}</h2>
           <v-divider dark class="my-2" />
           <p>{{ title.overview }}</p>
           <v-divider dark class="my-2" />
-          <p>{{ title.release_date }}</p>
+          <v-chip
+            v-for="genre in genres"
+            outlined
+            dark
+            color="primary"
+            class="mr-2"
+          >
+            {{ genre }}
+          </v-chip>
           <v-divider dark class="my-2" />
-          <p>{{ title.genres }}</p>
+          <!-- TODO: Link to director page -->
+          <p>Directors: {{ directors }}</p>
           <v-divider dark class="my-2" />
+          <p>Writers: {{ writers }}</p>
+          <v-divider dark class="my-2" />
+          <p>Runtime {{ title.runtime }} minutes</p>
+          <v-divider dark class="my-2" />
+          <p>Rating {{ title.vote_average }}/10 ({{ title.vote_count }})</p>
+          <v-divider dark class="my-2" />
+          <!-- <p>Budget: {{ title.budget }}</p>
+            <v-divider dark class="my-2" />
+            <v-divider dark class="my-2" />
+            <p>Status: {{ title.status }}</p>
+          <p>Revenue: {{ title.revenue }}</p> -->
           <!-- <p v-if="hasDirectors">Directors: {{ title.directors }}</p>
           <v-divider dark class="my-2" v-if="hasDirectors" />
           <p v-if="hasWriters">Writers: {{ title.writers }}</p>
@@ -101,17 +119,36 @@ export default {
       if (this?.title?.poster_path) {
         return `https://image.tmdb.org/t/p/w500${this.title.poster_path}`;
       } else {
-        return null;
+        return "nopicture.jpg";
       }
+    },
+    headerTitle() {
+      if (!this?.title?.title) return "";
+      return `${this.title.title} (${this.title.release_date.split("-")[0]})`;
     },
     cast() {
       return this.title?.credits?.cast || [];
     },
-    hasDirectors() {
-      return this.title?.directors?.length > 0;
+    directors() {
+      if (!this.title?.credits?.crew) return "";
+      const directors = this.title.credits.crew.filter(
+        (crew) => crew.job === "Director"
+      );
+      return directors.map((director) => director.name).join(", ");
+    },
+    writers() {
+      if (!this.title?.credits?.crew) return "";
+      const writers = this.title.credits.crew.filter((crew) => {
+        return crew.job === "Screenplay" || crew.job === "Writer";
+      });
+      return writers.map((writers) => writers.name).join(", ");
     },
     hasWriters() {
       return this.title?.writers?.length > 0;
+    },
+    genres() {
+      if (this.title?.genres?.length === 0) return [];
+      return this.title?.genres?.map((genre) => genre.name);
     },
   },
   created() {
@@ -156,7 +193,7 @@ export default {
         this.hasError = true;
         this.errorMsg = err.message;
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
     onActorError(message) {
