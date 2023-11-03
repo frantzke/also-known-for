@@ -69,6 +69,30 @@ export const actions = {
     commit("setTitle", { title });
   },
 
+  async fetchTV({ commit }, { titleId }) {
+    if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
+
+    const encodedText = encodeURIComponent(titleId);
+    const url = `${BASE_URL}/tv/${encodedText}?append_to_response=credits`;
+    const title = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
+      return await response.json();
+    });
+    console.log("fetchTitle ~ title:", title);
+
+    //Preserve order of cast
+    title.credits.cast.forEach((actor, index) => {
+      actor.order = index;
+    });
+    commit("setActors", { actors: title.credits.cast });
+
+    commit("setTitle", { title });
+  },
+
+  /*
   async fetchActorTitles({ commit, state }, { actorId, titleIds }) {
     const actor = state.actors[actorId];
     //Filter and sort all movies
@@ -119,10 +143,12 @@ export const actions = {
 
     commit("addActorRoles", { actorId, roles: roles });
   },
+  */
 
   async fetchActor({ commit }, { actorId }) {
     //TODO: Check if actor is already in state
     const encodedText = encodeURIComponent(actorId);
+    //TODO: combined_credits
     const url = `${BASE_URL}/person/${encodedText}?append_to_response=movie_credits&language=en-US`;
     const actor = await fetch(url, {
       headers: {
@@ -142,6 +168,7 @@ export const actions = {
   async fetchActors({ commit, state }, { actorIds }) {
     try {
       const promises = actorIds.map((id) => {
+        //TODO: combined_credits
         const url = `${BASE_URL}/person/${id}?append_to_response=movie_credits&language=en-US`;
         return fetch(url, {
           headers: {

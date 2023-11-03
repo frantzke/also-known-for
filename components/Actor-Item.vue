@@ -14,7 +14,7 @@
         :imageSrc="getRoleImage(role.poster_path)"
         :name="role.title"
         :role="role.character"
-        @on-click="onClickTitle(role.id)"
+        @on-click="onClickTitle(role.id, role.credit_id)"
       />
       <div class="d-flex align-center">
         <v-progress-circular
@@ -31,6 +31,9 @@
 </template>
 <script>
 import { mapActions } from "vuex";
+
+// import { fetchCredits } from "@/api/api";
+import { BASE_URL, API_KEY } from "../env";
 
 import Poster from "./Poster.vue";
 
@@ -62,10 +65,31 @@ export default {
   methods: {
     ...mapActions(["fetchActorTitles"]),
     onClickActor(id) {
-      this.$router.push(`/actor/${id}`);
+      this.$router.push(`/person/${id}`);
     },
-    onClickTitle(id) {
-      this.$router.push(`/title/${id}`);
+    async onClickTitle(id, credit_id) {
+      try {
+        //TODO: Move this to a helper function
+        if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
+        
+        const encodedText = encodeURIComponent(credit_id);
+        const url = `${BASE_URL}/credit/${encodedText}`;
+        const credit = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+          },
+        }).then(async (response) => {
+          return await response.json();
+        });
+
+        if (credit.media_type === 'movie') {
+          this.$router.push(`/movie/${id}`);
+        } else if (credit.media_type === 'tv') {
+          this.$router.push(`/tv/${id}`);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
     getRoleImage(posterPath) {
       if (posterPath) {

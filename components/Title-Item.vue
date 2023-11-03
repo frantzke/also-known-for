@@ -54,11 +54,11 @@ export default {
     onClickTitle(id) {
       let mediaType = this.title.media_type;
       if (mediaType === "movie") {
-        this.$router.push(`/title/${id}`);
+        this.$router.push(`/movie/${id}`);
       } else if (mediaType === "tv") {
-        this.$router.push(`/title/${id}`);
+        this.$router.push(`/tv/${id}`);
       } else if (mediaType === "person") {
-        this.$router.push(`/actor/${id}`);
+        this.$router.push(`/person/${id}`);
       }
     },
   },
