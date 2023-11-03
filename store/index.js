@@ -45,12 +45,6 @@ export const actions = {
     }).then(async (response) => {
       return await response.json();
     });
-    console.log("fetchTitle ~ title:", title);
-    // debugger;
-
-    // if (title.starList === null) {
-    //   throw new Error(title.errorMessage);
-    // }
 
     //Preserve order of cast
     title.credits.cast.forEach((actor, index) => {
@@ -148,8 +142,7 @@ export const actions = {
   async fetchActor({ commit }, { actorId }) {
     //TODO: Check if actor is already in state
     const encodedText = encodeURIComponent(actorId);
-    //TODO: combined_credits
-    const url = `${BASE_URL}/person/${encodedText}?append_to_response=movie_credits&language=en-US`;
+    const url = `${BASE_URL}/person/${encodedText}?append_to_response=combined_credits&language=en-US`;
     const actor = await fetch(url, {
       headers: {
         Authorization: `Bearer ${API_KEY}`,
@@ -157,10 +150,6 @@ export const actions = {
     }).then(async (response) => {
       return await response.json();
     });
-    console.log("fetchActor ~ actor:", actor);
-    // if (!actor.knownFor) {
-    //   throw new Error(actor.errorMessage);
-    // }
 
     commit("setActor", { actor });
   },
@@ -168,8 +157,7 @@ export const actions = {
   async fetchActors({ commit, state }, { actorIds }) {
     try {
       const promises = actorIds.map((id) => {
-        //TODO: combined_credits
-        const url = `${BASE_URL}/person/${id}?append_to_response=movie_credits&language=en-US`;
+        const url = `${BASE_URL}/person/${id}?append_to_response=combined_credits&language=en-US`;
         return fetch(url, {
           headers: {
             Authorization: `Bearer ${API_KEY}`,
@@ -228,11 +216,11 @@ export const mutations = {
   setActors(state, { actors }) {
     actors.forEach((actor) => {
       //Add roles property
-      actor.roles = actor?.movie_credits?.cast || [];
+      actor.roles = actor?.combined_credits?.cast || [];
       //Sort roles by popularity
-      actor.roles.sort((a, b) => {
-        return b.popularity - a.popularity;
-      });
+      // actor.roles.sort((a, b) => {
+      //   return b.popularity - a.popularity;
+      // });
 
       // Keep Old Properties
       const oldActor = state.actors[actor.id] || {};
@@ -247,11 +235,11 @@ export const mutations = {
 
   setActor(state, { actor }) {
     //Add roles property
-    actor.roles = actor?.movie_credits?.cast || [];
+    actor.roles = actor?.combined_credits?.cast || [];
     //Sort roles by popularity
-    actor.roles.sort((a, b) => {
-      return b.popularity - a.popularity;
-    });
+    // actor.roles.sort((a, b) => {
+    //   return b.order - a.order;
+    // });
 
     Vue.set(state, "actor", actor);
   },

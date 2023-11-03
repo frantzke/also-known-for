@@ -185,16 +185,19 @@ export default {
       let currStart = start;
       let currEnd;
 
-      this.fetchActorInterval = setInterval(async () => {
-        currEnd = currStart + 5;
-        if (currEnd >= allActors.length) currEnd = undefined;
-        const actors = allActors.slice(currStart, currEnd);
-        await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
-        currStart = currEnd;
-        if (currEnd === undefined) {
-          clearInterval(this.fetchActorInterval);
-        }
-      }, 5000);
+      //TODO: Use the scroll event?
+      //TODO: Use observables?
+
+      // this.fetchActorInterval = setInterval(async () => {
+      //   currEnd = currStart + 5;
+      //   if (currEnd >= allActors.length) currEnd = undefined;
+      //   const actors = allActors.slice(currStart, currEnd);
+      //   await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
+      //   currStart = currEnd;
+      //   if (currEnd === undefined) {
+      //     clearInterval(this.fetchActorInterval);
+      //   }
+      // }, 5000);
     },
     // getMockData() {
     //   const { title, stars } = mockData();

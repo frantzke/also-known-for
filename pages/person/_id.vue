@@ -130,10 +130,9 @@
 </template>
 
 <script>
-import mockData from "@/helpers/mockData";
 import { mapGetters, mapActions } from "vuex";
 
-import { BASE_URL, API_KEY } from "../../env";
+import { fetchCredit } from "@/api";
 import Poster from "@/components/Poster.vue";
 import TitleItem from "@/components/Title-Item.vue";
 
@@ -162,7 +161,7 @@ export default {
     },
     crew() {
       //TODO: Fix this
-      const crew = this?.actor?.movie_credits?.crew || [];
+      const crew = this?.actor?.combined_credits?.crew || [];
       const copyOfCrew = [...crew];
       copyOfCrew.sort((a, b) => b.popularity - a.popularity);
       return copyOfCrew;
@@ -176,7 +175,6 @@ export default {
   },
   created() {
     this.init();
-    // this.getMockData();
   },
   methods: {
     ...mapActions(["fetchActor"]),
@@ -202,31 +200,14 @@ export default {
         return "nopicture.jpg";
       }
     },
-    // getMockData() {
-    //   const { stars } = mockData();
-    //   this.actor = stars[1];
-    //   this.movies = this.actor.castMovies.slice(0, 10);
-    // },
     async onClickTitle(id, credit_id) {
-      //TODO: Move to helper function
-      if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
-
-      const encodedText = encodeURIComponent(credit_id);
-      const url = `${BASE_URL}/credit/${encodedText}`;
-      const credit = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-        },
-      }).then(async (response) => {
-        return await response.json();
-      });
+      const credit = await fetchCredit(credit_id);
 
       if (credit.media_type === "movie") {
         this.$router.push(`/movie/${id}`);
       } else if (credit.media_type === "tv") {
         this.$router.push(`/tv/${id}`);
       }
-      // this.$router.push(`/title/${id}`);
     },
   },
 };

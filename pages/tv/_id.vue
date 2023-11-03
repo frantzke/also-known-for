@@ -162,7 +162,7 @@ export default {
         await this.fetchTV({ titleId });
 
         console.log(this.title);
-        const allActors = this?.title?.combined_credits?.cast || [];
+        const allActors = this?.title?.credits?.cast || [];
         const index = 5;
         const actors = allActors.slice(0, index);
 
@@ -176,20 +176,20 @@ export default {
       }
     },
     queueFetchAllActors(start) {
-      const allActors = this?.title?.combined_credits?.cast || [];
+      const allActors = this?.title?.credits?.cast || [];
       let currStart = start;
       let currEnd;
 
-      this.fetchActorInterval = setInterval(async () => {
-        currEnd = currStart + 5;
-        if (currEnd >= allActors.length) currEnd = undefined;
-        const actors = allActors.slice(currStart, currEnd);
-        await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
-        currStart = currEnd;
-        if (currEnd === undefined) {
-          clearInterval(this.fetchActorInterval);
-        }
-      }, 5000);
+      // this.fetchActorInterval = setInterval(async () => {
+      //   currEnd = currStart + 5;
+      //   if (currEnd >= allActors.length) currEnd = undefined;
+      //   const actors = allActors.slice(currStart, currEnd);
+      //   await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
+      //   currStart = currEnd;
+      //   if (currEnd === undefined) {
+      //     clearInterval(this.fetchActorInterval);
+      //   }
+      // }, 5000);
     },
     // getMockData() {
     //   const { title, stars } = mockData();
