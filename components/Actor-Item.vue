@@ -9,7 +9,7 @@
       />
       <v-divider dark vertical class="mx-2 primary" />
       <Poster
-        v-for="(role, index) in actor.roles"
+        v-for="(role, index) in roles"
         :key="`${actor.id}-${role.id}-${index}`"
         :imageSrc="getRoleImage(role.poster_path)"
         :name="role.title"
@@ -18,7 +18,7 @@
       />
       <div class="d-flex align-center">
         <v-progress-circular
-          v-if="actor.roles.length === 0"
+          v-if="hasNoRoles"
           indeterminate
           color="primary"
         />
@@ -57,8 +57,11 @@ export default {
         return "nopicture.jpg";
       }
     },
+    roles() {
+      return this.actor?.combined_credits?.cast || [];
+    },
     hasNoRoles() {
-      return this.actor.roles.length === 0;
+      return this.actor?.combined_credits?.cast?.length === 0;
     },
   },
   methods: {

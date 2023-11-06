@@ -60,27 +60,20 @@
 
     <v-row no-gutters>
       <ActorItem
-        v-for="actor in actors"
+        v-for="actor in cast"
         :key="actor.id"
         :actor="actor"
         @error="onActorError"
       />
-    </v-row>
-
-    <!-- <div class="d-flex justify-center" v-if="!hasError">
-      <v-btn
-        large
-        text
-        append-icon
-        :loading="isLoading"
-        class="m-4 primary--text"
-        color="primary"
-        @click="onMoreActors"
+      <v-col
+        v-if="hasMoreCast"
+        id="loadMore"
+        cols="12"
+        class="d-flex py-4 justify-center more"
       >
-        More Cast
-        <v-icon color="primary" right large> mdi-menu-down </v-icon>
-      </v-btn>
-    </div> -->
+        <v-progress-circular indeterminate color="primary" />
+      </v-col>
+    </v-row>
 
     <v-snackbar v-model="showSnackBar" color="red" timeout="3500">
       {{ errorMessage }}
@@ -92,7 +85,6 @@
 import { mapGetters, mapActions } from "vuex";
 
 import ActorItem from "@/components/Actor-Item.vue";
-import { NODE_ENV } from "@/env";
 
 export default {
   name: "TitlePage",
@@ -105,11 +97,10 @@ export default {
       errorMessage: "An error occurred",
       showSnackBar: false,
       isLoading: false,
-      fetchActorInterval: null,
     };
   },
   computed: {
-    ...mapGetters(["title", "actors"]),
+    ...mapGetters(["title", "cast"]),
     imageSrc() {
       if (this?.title?.poster_path) {
         return `https://image.tmdb.org/t/p/w500${this.title.poster_path}`;
@@ -142,17 +133,18 @@ export default {
       if (this.title?.genres?.length === 0) return [];
       return this.title?.genres?.map((genre) => genre.name);
     },
+    hasMoreCast() {
+      return (
+        this.cast?.length > 0 &&
+        this.cast?.length < this.title?.credits?.cast?.length
+      );
+    },
   },
   created() {
     this.init();
   },
-  beforeRouteLeave(to, from, next) {
-    // Clear interval
-    this.fetchActorInterval && clearInterval(this.fetchActorInterval);
-    next();
-  },
   methods: {
-    ...mapActions(["fetchTitle", "fetchActors", "resetTitlePage"]),
+    ...mapActions(["fetchTitle", "fetchPersons", "resetTitlePage"]),
     async init() {
       const titleId = this.$route.params.id;
 
@@ -161,51 +153,51 @@ export default {
 
       try {
         this.resetTitlePage();
-        //Fetch movie or tv based on type...
+
         await this.fetchTitle({ titleId });
 
-        console.log(this.title);
-        const allActors = this?.title?.credits?.cast || [];
-        const index = 5;
-        const actors = allActors.slice(0, index);
+        await this.fetchInitialCast();
 
-        await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
-
-        // Fetch the rest of the actors on an interval
-        this.queueFetchAllActors(index);
+        this.setupObserver();
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
       }
     },
-    queueFetchAllActors(start) {
-      const allActors = this?.title?.credits?.cast || [];
-      let currStart = start;
-      let currEnd;
+    async fetchInitialCast() {
+      try {
+        const allCast = this?.title?.credits?.cast || [];
+        const index = 5;
+        const cast = allCast.slice(0, index);
 
-      //TODO: Use the scroll event?
-      //TODO: Use observables?
-
-      // this.fetchActorInterval = setInterval(async () => {
-      //   currEnd = currStart + 5;
-      //   if (currEnd >= allActors.length) currEnd = undefined;
-      //   const actors = allActors.slice(currStart, currEnd);
-      //   await this.fetchActors({ actorIds: actors.map((actor) => actor.id) });
-      //   currStart = currEnd;
-      //   if (currEnd === undefined) {
-      //     clearInterval(this.fetchActorInterval);
-      //   }
-      // }, 5000);
+        await this.fetchPersons({ personIds: cast.map((actor) => actor.id) });
+      } catch (err) {
+        this.hasError = true;
+        this.errorMsg = err.message;
+      }
     },
-    async onMoreActors() {
-      const index = this.actors.length;
-      const nextActors = NODE_ENV === "production" ? 5 : 1;
-      const actors = [...this.title.actorList].slice(index, index + nextActors);
-      const actorIds = actors.map((actor) => actor.id);
+    setupObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          this.fetchMoreCast();
+        }
+      });
+
+      observer.observe(document.querySelector("#loadMore"));
+    },
+    async fetchMoreCast() {
+      const currentCast = [...this.cast];
+      const allCast = [...this?.title?.credits?.cast] || [];
+
+      const start = currentCast.length;
+      let end = start + 5;
+      if (end >= allCast.length) end = undefined;
+      const cast = allCast.slice(start, end);
+      const actorIds = cast.map((actor) => actor.id);
 
       try {
         this.isLoading = true;
-        await this.fetchActors({ actorIds });
+        await this.fetchPersons({ personIds: actorIds });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;

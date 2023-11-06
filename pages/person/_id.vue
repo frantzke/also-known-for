@@ -33,31 +33,16 @@
           </v-chip>
           <v-divider dark class="my-2" />
           <!-- TODO: Format Date -->
-          <p>Born: {{ actor.birthday }}</p>
+          <p>Born: {{ actor.birthday }} {{ actor.place_of_birth }}</p>
           <div v-if="actor.deathday">
             <v-divider dark class="my-2" />
             <p>Death: {{ actor.deathday }}</p>
           </div>
-          <v-divider dark class="my-2" />
-          <p>Born: {{ actor.place_of_birth }}</p>
         </v-col>
       </v-row>
     </v-container>
 
     <div v-if="!hasError">
-      <!-- <v-divider dark class="my-4 primary" /> -->
-
-      <!-- <h4 class="mb-2 text-h4 font-weight-light">Known For</h4> -->
-      <!-- <div class="d-flex py-4 item-container">
-        <Poster
-          v-for="kfor in actor.knownFor"
-          :key="`kfor_${kfor.id}`"
-          :imageSrc="kfor.image"
-          :name="kfor.title"
-          :role="kfor.role"
-          @on-click="onClickTitle(kfor.id)"
-        />
-      </div> -->
 
       <v-divider dark class="my-4 primary" />
 
@@ -107,24 +92,6 @@
         </v-row>
       </v-container>
 
-      <!-- <TitleItem v-for="title in actor.roles" :key="title.id" :title="title" /> -->
-      <!-- <div
-        v-for="(title, index) in actor.roles"
-        :key="index"
-        @click="onClickTitle(title.id)"
-      >
-        <v-hover v-slot="{ hover }">
-          <div class="d-flex py-4" :class="{ 'on-hover': hover }">
-            <div>
-              <h3>{{ title.title }} {{ title.year }}</h3>
-              <p class="mb-0 subtitle-1">{{ title.role }}</p>
-              <p class="subtitle-1">{{ title.description }}</p>
-            </div>
-          </div>
-        </v-hover>
-
-        <v-divider />
-      </div> -->
     </div>
   </v-container>
 </template>
@@ -166,12 +133,6 @@ export default {
       copyOfCrew.sort((a, b) => b.popularity - a.popularity);
       return copyOfCrew;
     },
-    // actor() {
-    //   const actorId = this.$route.params.id;
-    //   console.log("actor ~ actorId:", actorId);
-    //   const actor = this.actorById(actorId);
-    //   return actor ? actor : {};
-    // },
   },
   created() {
     this.init();
