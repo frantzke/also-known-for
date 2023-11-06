@@ -3,9 +3,8 @@ import { BASE_URL, API_KEY } from "../env";
 
 // root state
 export const state = () => ({
-  titles: {},
+  titles: {}, //Search Results
   title: {},
-  stars: [], //TODO: Remove Stars
   actor: {},
   actors: {},
 });
@@ -23,12 +22,8 @@ export const actions = {
     }).then(async (response) => {
       return await response.json();
     });
-    const { results } = data;
 
-    if (results === null) {
-      // data.errorMessage === 'Server busy' || 'Maximum usage (107 of 100 per day)'
-      throw Error(data.errorMessage);
-    }
+    const { results } = data;
 
     commit("setTitles", { titles: results });
   },
@@ -46,19 +41,12 @@ export const actions = {
       return await response.json();
     });
 
-    //Preserve order of cast
+    //TODO: Refactor
+    // //Preserve order of cast
     title.credits.cast.forEach((actor, index) => {
       actor.order = index;
     });
     commit("setActors", { actors: title.credits.cast });
-    // title.starList.forEach((star) => {
-    //   // Find star's role in the title
-    //   const starRole = title.actorList.find((actor) => {
-    //     return actor.id === star.id;
-    //   });
-    //   if (starRole) star.asCharacter = starRole.asCharacter;
-    //   commit("setActor", { actor: star });
-    // });
 
     commit("setTitle", { title });
   },
@@ -75,8 +63,8 @@ export const actions = {
     }).then(async (response) => {
       return await response.json();
     });
-    console.log("fetchTitle ~ title:", title);
 
+    //TODO: Refactor
     //Preserve order of cast
     title.credits.cast.forEach((actor, index) => {
       actor.order = index;

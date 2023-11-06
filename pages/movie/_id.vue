@@ -91,7 +91,6 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 
-import mockData from "@/helpers/mockData";
 import ActorItem from "@/components/Actor-Item.vue";
 import { NODE_ENV } from "@/env";
 
@@ -146,7 +145,6 @@ export default {
   },
   created() {
     this.init();
-    // this.getMockData();
   },
   beforeRouteLeave(to, from, next) {
     // Clear interval
@@ -199,11 +197,6 @@ export default {
       //   }
       // }, 5000);
     },
-    // getMockData() {
-    //   const { title, stars } = mockData();
-    //   this.title = title;
-    //   this.actors = stars;
-    // },
     async onMoreActors() {
       const index = this.actors.length;
       const nextActors = NODE_ENV === "production" ? 5 : 1;
