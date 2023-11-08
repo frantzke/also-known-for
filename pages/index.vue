@@ -23,9 +23,6 @@
       <h4 class="text-h4 text-center font-weight-light">
         {{errorMsg}} 😖
       </h4>
-      <!-- <p class="subtitle-1 text-center font-weight-light">
-        Please come back tomorrow
-      </p> -->
     </div>
 
     <div v-if="isLoading">

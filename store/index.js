@@ -79,9 +79,9 @@ export const actions = {
     commit("setActor", { actor });
   },
 
-  async fetchPersons({ commit, state }, { personIds }) {
+  async fetchCast({ commit, state }, { cast }) {
     try {
-      const promises = personIds.map((id) => {
+      const promises = cast.map(({id}) => {
         const url = `${BASE_URL}/person/${id}?append_to_response=combined_credits&language=en-US`;
         return fetch(url, {
           headers: {
@@ -89,10 +89,22 @@ export const actions = {
           },
         }).then((response) => response.json());
       });
-      //TODO: Use AllSettled
-      const personResults = await Promise.all(promises);
+      const promiseResults = await Promise.allSettled(promises);
 
-      commit("setCast", { cast: personResults });
+      // Map the results to the cast's character name
+      const castResults = promiseResults.map((result, index) => {
+        if (result.status === "fulfilled") {
+          return {
+            character: cast[index]?.character || "",
+            ...result.value
+          };
+        } else { 
+          console.error(result.reason);
+          return null;
+        }
+      });
+
+      commit("setCast", { cast: castResults });
     } catch (error) {
       throw error;
     }
@@ -126,13 +138,6 @@ export const mutations = {
   },
 
   setActor(state, { actor }) {
-    //Add roles property
-    actor.roles = actor?.combined_credits?.cast || [];
-    //Sort roles by popularity
-    // actor.roles.sort((a, b) => {
-    //   return b.order - a.order;
-    // });
-
     Vue.set(state, "actor", actor);
   },
 

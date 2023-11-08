@@ -51,7 +51,7 @@
       <v-container>
         <v-row>
           <v-col
-            v-for="role in actor.roles"
+            v-for="role in roles"
             class="d-flex child-flex"
             lg="2"
             md="3"
@@ -59,7 +59,7 @@
           >
             <Poster
               :key="role.id"
-              :imageSrc="getRoleImage(role.poster_path)"
+              :posterPath="role.poster_path"
               :name="role.title"
               :role="role.character"
               @on-click="onClickTitle(role.id, role.credit_id)"
@@ -83,7 +83,7 @@
           >
             <Poster
               :key="credit.id"
-              :imageSrc="getRoleImage(credit.poster_path)"
+              :posterPath="credit.poster_path"
               :name="credit.title"
               :role="credit.job"
               @on-click="onClickTitle(role.id, role.credit_id)"
@@ -126,8 +126,10 @@ export default {
         return "nopicture.jpg";
       }
     },
+    roles() {
+      return this?.actor?.combined_credits?.cast || [];
+    },
     crew() {
-      //TODO: Fix this
       const crew = this?.actor?.combined_credits?.crew || [];
       const copyOfCrew = [...crew];
       copyOfCrew.sort((a, b) => b.popularity - a.popularity);
@@ -146,19 +148,11 @@ export default {
 
       try {
         await this.fetchActor({ actorId });
-        console.log("Fetched Actor");
 
         console.log(this.actor);
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
-      }
-    },
-    getRoleImage(posterPath) {
-      if (posterPath) {
-        return `https://image.tmdb.org/t/p/w185${posterPath}`;
-      } else {
-        return "nopicture.jpg";
       }
     },
     async onClickTitle(id, credit_id) {

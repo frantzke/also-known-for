@@ -1,7 +1,7 @@
 <template>
   <div class="mx-2 poster-container" @click="$emit('on-click')">
     <v-img
-      :src="imageSrc"
+      :src="imageSource"
       :alt="`Poster for ${name}`"
       lazy-src="nopicture.jpg"
       contain
@@ -15,13 +15,14 @@
     </p>
   </div>
 </template>
+
 <script>
 export default {
   name: "Poster",
   props: {
-    imageSrc: String,
     name: String,
     role: String,
+    posterPath: String,
   },
   computed: {
     trimmedRole() {
@@ -29,9 +30,17 @@ export default {
         ? this.role.substring(0, 100 - 3) + "..."
         : this.role;
     },
+    imageSource() {
+      if (this.posterPath) {
+        return `https://image.tmdb.org/t/p/w185${this.posterPath}`;
+      } else {
+        return "nopicture.jpg";
+      }
+    },
   },
 };
 </script>
+
 <style>
 .poster-container {
   width: 12rem;

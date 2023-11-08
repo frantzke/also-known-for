@@ -2,10 +2,6 @@
   <v-container>
     <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
-      <!-- <p class="subtitle-1 text-center font-weight-light">
-        Maximum requests for today 😢
-        Please come back tomorrow
-      </p> -->
     </div>
 
     <v-container v-else>
@@ -144,7 +140,7 @@ export default {
     this.init();
   },
   methods: {
-    ...mapActions(["fetchTitle", "fetchPersons", "resetTitlePage"]),
+    ...mapActions(["fetchTitle", "fetchCast", "resetTitlePage"]),
     async init() {
       const titleId = this.$route.params.id;
 
@@ -170,7 +166,7 @@ export default {
         const index = 5;
         const cast = allCast.slice(0, index);
 
-        await this.fetchPersons({ personIds: cast.map((actor) => actor.id) });
+        await this.fetchCast({ cast });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
@@ -193,11 +189,11 @@ export default {
       let end = start + 5;
       if (end >= allCast.length) end = undefined;
       const cast = allCast.slice(start, end);
-      const actorIds = cast.map((actor) => actor.id);
+      // const actorIds = cast.map((actor) => actor.id);
 
       try {
         this.isLoading = true;
-        await this.fetchPersons({ personIds: actorIds });
+        await this.fetchCast({ cast });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;

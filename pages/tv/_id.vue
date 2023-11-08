@@ -41,12 +41,16 @@
           <!-- TODO: Link to director page -->
           <p>Created By: {{ createdBy }}</p>
           <v-divider dark class="my-2" />
+
+          <p>{{ title.status }}: {{ airingDates }} </p>
+          <v-divider dark class="my-2" />
+          
+          <p>{{ title.number_of_seasons }} Seasons {{ title.number_of_episodes }} Episodes</p>
+          <v-divider dark class="my-2" />
+
           <p>Run Time: {{ runTime }} minutes</p>
           <v-divider dark class="my-2" />
-          <p>Episodes {{ title.number_of_episodes }}</p>
-          <v-divider dark class="my-2" />
-          <p>Seasons {{ title.number_of_seasons }}</p>
-          <v-divider dark class="my-2" />
+          
           <p>Rating {{ title.vote_average }}/10 ({{ title.vote_count }})</p>
           <v-divider dark class="my-2" />
           <!-- <p>Budget: {{ title.budget }}</p>
@@ -126,6 +130,13 @@ export default {
       if (!this.title?.episode_run_time) return "";
       return this.title.episode_run_time.join(", ");
     },
+    airingDates() {
+      if (this.title?.last_air_date) {
+        return `${this.title.first_air_date} - ${this.title.last_air_date}`;
+      } else {
+        return this.title.first_air_date;
+      }
+    },
     genres() {
       if (this.title?.genres?.length === 0) return [];
       return this.title?.genres?.map((genre) => genre.name);
@@ -146,7 +157,7 @@ export default {
   //   next();
   // },
   methods: {
-    ...mapActions(["fetchTV", "fetchPersons", "resetTitlePage"]),
+    ...mapActions(["fetchTV", "fetchCast", "resetTitlePage"]),
     async init() {
       const titleId = this.$route.params.id;
 
@@ -157,6 +168,7 @@ export default {
         this.resetTitlePage();
 
         await this.fetchTV({ titleId });
+        console.log(this.title)
 
         await this.fetchInitialCast();
 
@@ -172,7 +184,7 @@ export default {
         const index = 5;
         const cast = allCast.slice(0, index);
 
-        await this.fetchPersons({ personIds: cast.map((actor) => actor.id) });
+        await this.fetchCast({ cast });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
@@ -195,11 +207,11 @@ export default {
       let end = start + 5;
       if (end >= allCast.length) end = undefined;
       const cast = allCast.slice(start, end);
-      const actorIds = cast.map((actor) => actor.id);
+      // const actorIds = cast.map((actor) => actor.id);
 
       try {
         this.isLoading = true;
-        await this.fetchPersons({ personIds: actorIds });
+        await this.fetchCast({ cast });
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
