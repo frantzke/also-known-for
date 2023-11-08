@@ -19,6 +19,14 @@
       </v-btn>
     </div>
 
+    <v-alert
+      :value="true"
+      color="error"
+      icon="$error"
+    >
+      The API Also Known For relies on is down. Work is underway to restore functionality as soon as possible.  
+    </v-alert>
+
     <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">
         {{errorMsg}} 😖
