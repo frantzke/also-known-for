@@ -1,14 +1,10 @@
 <template>
   <v-container>
-    <div v-if="hasError">
-      <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
-      <!-- <p class="subtitle-1 text-center font-weight-light">
-        Maximum requests for today 😢
-        Please come back tomorrow
-      </p> -->
-    </div>
+    <v-alert :value="hasError" color="error" icon="$error">
+      {{ errorMsg }}
+    </v-alert>
 
-    <v-container v-else>
+    <v-container>
       <v-row>
         <v-col cols="12" sm="6" md="4">
           <v-img
@@ -42,15 +38,18 @@
           <p>Created By: {{ createdBy }}</p>
           <v-divider dark class="my-2" />
 
-          <p>{{ title.status }}: {{ airingDates }} </p>
-          <v-divider dark class="my-2" />
-          
-          <p>{{ title.number_of_seasons }} Seasons {{ title.number_of_episodes }} Episodes</p>
+          <p>{{ title.status }}: {{ airingDates }}</p>
           <v-divider dark class="my-2" />
 
-          <p>Run Time: {{ runTime }} minutes</p>
+          <p>
+            {{ title.number_of_seasons }} Seasons
+            {{ title.number_of_episodes }} Episodes
+          </p>
           <v-divider dark class="my-2" />
-          
+
+          <p>Episode Length: {{ runTime }} minutes</p>
+          <v-divider dark class="my-2" />
+
           <p>Rating {{ title.vote_average }}/10 ({{ title.vote_count }})</p>
           <v-divider dark class="my-2" />
           <!-- <p>Budget: {{ title.budget }}</p>
@@ -75,14 +74,14 @@
         v-if="hasMoreCast"
         id="loadMore"
         cols="12"
-        class="d-flex py-4 justify-center more"
+        class="d-flex py-4 justify-center"
       >
         <v-progress-circular indeterminate color="primary" />
       </v-col>
     </v-row>
 
     <v-snackbar v-model="showSnackBar" color="red" timeout="3500">
-      {{ errorMessage }}
+      {{ errorMsg }}
     </v-snackbar>
   </v-container>
 </template>
@@ -91,7 +90,6 @@
 import { mapGetters, mapActions } from "vuex";
 
 import ActorItem from "@/components/Actor-Item.vue";
-// import { NODE_ENV } from "@/env";
 
 export default {
   name: "TitlePage",
@@ -101,10 +99,9 @@ export default {
   data() {
     return {
       hasError: false,
-      errorMessage: "An error occurred",
+      errorMsg: "An error occurred",
       showSnackBar: false,
       isLoading: false,
-      // fetchActorInterval: null,
     };
   },
   computed: {
@@ -141,10 +138,12 @@ export default {
       return this.title?.genres?.map((genre) => genre.name);
     },
     hasMoreCast() {
-      return (
-        this.cast?.length > 0 &&
-        this.cast?.length < this.title?.credits?.cast?.length
-      );
+      if (!this.title?.credits?.cast) return false;
+      if (!this.cast) return false;
+      if (this.cast.length === 0) return false;
+      const hasCast = this.cast.length > 0;
+      const allCastLoaded = this.cast.length === this.title.credits.cast.length;
+      return hasCast && !allCastLoaded;
     },
   },
   created() {
@@ -162,7 +161,6 @@ export default {
         this.resetTitlePage();
 
         await this.fetchTV({ titleId });
-        console.log(this.title)
 
         await this.fetchInitialCast();
 
@@ -191,7 +189,10 @@ export default {
         }
       });
 
-      observer.observe(document.querySelector("#loadMore"));
+      const loadMore = document.querySelector("#loadMore");
+      if (loadMore) {
+        observer.observe(loadMore);
+      }
     },
     async fetchMoreCast() {
       const currentCast = [...this.cast];
@@ -214,7 +215,7 @@ export default {
     },
     onActorError(message) {
       this.showSnackBar = true;
-      this.errorMessage = message;
+      this.errorMsg = message;
     },
   },
 };

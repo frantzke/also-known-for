@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <div v-if="hasError">
-      <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
-    </div>
+    <v-alert :value="hasError" color="error" icon="$error">
+      {{ errorMsg }}
+    </v-alert>
 
-    <v-container v-else>
+    <v-container>
       <v-row>
         <v-col cols="12" sm="6" md="4">
           <v-img
@@ -72,7 +72,7 @@
     </v-row>
 
     <v-snackbar v-model="showSnackBar" color="red" timeout="3500">
-      {{ errorMessage }}
+      {{ errorMsg }}
     </v-snackbar>
   </v-container>
 </template>
@@ -90,7 +90,7 @@ export default {
   data() {
     return {
       hasError: false,
-      errorMessage: "An error occurred",
+      errorMsg: "An error occurred",
       showSnackBar: false,
       isLoading: false,
     };
@@ -130,10 +130,12 @@ export default {
       return this.title?.genres?.map((genre) => genre.name);
     },
     hasMoreCast() {
-      return (
-        this.cast?.length > 0 &&
-        this.cast?.length < this.title?.credits?.cast?.length
-      );
+      if (!this.title?.credits?.cast) return false;
+      if (!this.cast) return false;
+      if (this.cast.length === 0) return false;
+      const hasCast = this.cast.length > 0;
+      const allCastLoaded = this.cast.length === this.title.credits.cast.length;
+      return hasCast && !allCastLoaded;
     },
   },
   created() {
@@ -179,7 +181,10 @@ export default {
         }
       });
 
-      observer.observe(document.querySelector("#loadMore"));
+      const loadMore = document.querySelector("#loadMore");
+      if (loadMore) {
+        observer.observe(loadMore);
+      }
     },
     async fetchMoreCast() {
       const currentCast = [...this.cast];
@@ -202,7 +207,7 @@ export default {
     },
     onActorError(message) {
       this.showSnackBar = true;
-      this.errorMessage = message;
+      this.errorMsg = message;
     },
   },
 };

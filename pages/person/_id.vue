@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <div v-if="hasError">
-      <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
-    </div>
+    <v-alert :value="hasError" color="error" icon="$error">
+      {{ errorMsg }}
+    </v-alert>
 
-    <v-container v-else>
+    <v-container>
       <v-row>
         <v-col cols="12" sm="6" md="4">
           <v-img
@@ -144,8 +144,6 @@ export default {
 
       try {
         await this.fetchActor({ actorId });
-
-        console.log(this.actor);
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
