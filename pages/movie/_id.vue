@@ -189,7 +189,6 @@ export default {
       let end = start + 5;
       if (end >= allCast.length) end = undefined;
       const cast = allCast.slice(start, end);
-      // const actorIds = cast.map((actor) => actor.id);
 
       try {
         this.isLoading = true;

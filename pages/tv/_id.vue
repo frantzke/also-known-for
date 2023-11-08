@@ -122,7 +122,6 @@ export default {
     },
     createdBy() {
       if (!this.title?.created_by) return "";
-      // this.title?.created_by
       const createdBy = this.title?.created_by;
       return createdBy.map((creator) => creator.name).join(", ");
     },
@@ -151,11 +150,6 @@ export default {
   created() {
     this.init();
   },
-  // beforeRouteLeave(to, from, next) {
-  //   // Clear interval
-  //   this.fetchActorInterval && clearInterval(this.fetchActorInterval);
-  //   next();
-  // },
   methods: {
     ...mapActions(["fetchTV", "fetchCast", "resetTitlePage"]),
     async init() {
@@ -207,7 +201,6 @@ export default {
       let end = start + 5;
       if (end >= allCast.length) end = undefined;
       const cast = allCast.slice(start, end);
-      // const actorIds = cast.map((actor) => actor.id);
 
       try {
         this.isLoading = true;

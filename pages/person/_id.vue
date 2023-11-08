@@ -2,10 +2,6 @@
   <v-container>
     <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
-      <!-- <p class="subtitle-1 text-center font-weight-light">
-        Maximum requests for today 😢
-        Please come back tomorrow
-      </p> -->
     </div>
 
     <v-container v-else>
