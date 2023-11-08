@@ -19,21 +19,8 @@
       </v-btn>
     </div>
 
-    <v-alert
-      :value="true"
-      color="error"
-      icon="$error"
-    >
-      The API Also Known For relies on is down. Work is underway to restore functionality as soon as possible.  
-    </v-alert>
-
     <div v-if="hasError">
-      <h4 class="text-h4 text-center font-weight-light">
-        {{errorMsg}} 😖
-      </h4>
-      <!-- <p class="subtitle-1 text-center font-weight-light">
-        Please come back tomorrow
-      </p> -->
+      <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
     </div>
 
     <div v-if="isLoading">
@@ -62,7 +49,7 @@ export default {
     isLoading: false,
     searchText: "",
     hasError: false,
-    errorMsg: ""
+    errorMsg: "",
   }),
   computed: {
     ...mapGetters(["titles"]),
@@ -75,7 +62,7 @@ export default {
     async onSearch() {
       if (this.searchText === "") {
         this.hasError = true;
-        this.errorMsg = "Please provide a search!"
+        this.errorMsg = "Please provide a search!";
         return;
       }
 
@@ -85,9 +72,9 @@ export default {
         this.resetSearchPage();
         await this.searchTitles({ searchText: this.searchText });
       } catch (err) {
-        this.hasError = true
+        this.hasError = true;
         this.errorMsg = err.message;
-      } finally{
+      } finally {
         this.isLoading = false;
       }
     },

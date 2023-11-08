@@ -3,28 +3,28 @@ import { BASE_URL, API_KEY } from "../env";
 
 // root state
 export const state = () => ({
-  titles: {},
+  titles: {}, //Search Results
   title: {},
-  stars: [],
   actor: {},
-  actors: {},
+  cast: [], //Cast for current title
 });
 
 export const actions = {
   async searchTitles({ commit }, { searchText }) {
+    commit("resetTitles");
     if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
 
     const encodedText = encodeURIComponent(searchText);
-    const url = `${BASE_URL}/SearchTitle/${API_KEY}/${encodedText}`;
-    const data = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/search/multi?query=${encodedText}&include_adult=false&language=en-US&page=1`;
+    const data = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
     });
-    const { results } = data;
 
-    if (results === null) {
-      // data.errorMessage === 'Server busy' || 'Maximum usage (107 of 100 per day)'
-      throw Error(data.errorMessage);
-    }
+    const { results } = data;
 
     if (!results) {
       throw Error("Search failed");
@@ -34,125 +34,89 @@ export const actions = {
   },
 
   async fetchTitle({ commit }, { titleId }) {
+    commit("resetTitle");
+    commit("resetCast");
     if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
 
     const encodedText = encodeURIComponent(titleId);
-    const url = `${BASE_URL}/Title/${API_KEY}/${encodedText}`;
-    const title = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/movie/${encodedText}?append_to_response=credits`;
+    const title = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
-    });
-
-    if (title.starList === null) {
-      throw new Error(title.errorMessage);
-    }
-
-    title.starList.forEach((star) => {
-      // Find star's role in the title
-      const starRole = title.actorList.find((actor) => {
-        return actor.id === star.id;
-      });
-      if (starRole) star.asCharacter = starRole.asCharacter;
-      commit("setActor", { actor: star });
     });
 
     commit("setTitle", { title });
   },
 
-  async fetchActorTitles({ commit, state }, { actorId, titleIds }) {
-    const actor = state.actors[actorId];
-    //Filter and sort all movies
-    const actorMovies = actor.castMovies
-      .filter((movie) => movie.role === "Actor" || movie.role === "Actress")
-      .sort((a, b) => {
-        const aYear = a.year === "" ? 0 : parseInt(a.year);
-        const bYear = b.year === "" ? 0 : parseInt(b.year);
-        return bYear - aYear;
-      });
+  async fetchTV({ commit }, { titleId }) {
+    commit("resetTitle");
+    commit("resetCast");
+    if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
 
-    //Filter down to 5 more roles
-    const index = actor.roles.length - actor.knownFor.length || 0;
-
-    // const index = actor.roles ? actor.roles.length - 1 : 0;
-    const roleKeys = actorMovies.slice(index, index + 5).map((role) => role.id);
-    //Filter out roles we have already seen
-    const fetchedRoleKeys = actor.roles.map((role) => role.id);
-    const additionalTitles = roleKeys.filter(
-      (key) => !fetchedRoleKeys.includes(key)
-    );
-    //Remove duplicates
-    const titleSet = new Set(additionalTitles);
-
-    const promises = Array.from(titleSet).map((id) => {
-      const url = `${BASE_URL}/Title/${API_KEY}/${id}/FullActor`;
-      return fetch(url).then(async (response) => await response.json());
-    });
-    const titleResults = await Promise.all(promises);
-
-    const results = titleResults.filter((title) => title.actorList);
-
-    if (results.length === 0) {
-      const result = titleResults.pop();
-      throw new Error(result?.errorMessage || "Something went wrong");
-    }
-
-    const roles = results.map((title) => {
-      const role = title.actorList.find((role) => role.id === actorId);
-      return {
-        fullTitle: title.fullTitle,
-        title: title.title,
-        id: title.id,
-        image: title.image,
-        role: role ? role.asCharacter : "",
-      };
+    const encodedText = encodeURIComponent(titleId);
+    const url = `${BASE_URL}/tv/${encodedText}?append_to_response=credits`;
+    const title = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
+      return await response.json();
     });
 
-    commit("addActorRoles", { actorId, roles: roles });
+    commit("setTitle", { title });
   },
 
   async fetchActor({ commit }, { actorId }) {
     const encodedText = encodeURIComponent(actorId);
-    const url = `${BASE_URL}/Name/${API_KEY}/${encodedText}`;
-    const actor = await fetch(url).then(async (response) => {
+    const url = `${BASE_URL}/person/${encodedText}?append_to_response=combined_credits&language=en-US`;
+    const actor = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+    }).then(async (response) => {
       return await response.json();
     });
-
-    if (!actor.knownFor) {
-      throw new Error(actor.errorMessage);
-    }
 
     commit("setActor", { actor });
   },
 
-  async fetchActors({ commit, state }, { actorIds }) {
-    const promises = actorIds.map((id) => {
-      const url = `${BASE_URL}/Name/${API_KEY}/${id}`;
-      return fetch(url).then(async (response) => await response.json());
-    });
-    const actorResults = await Promise.all(promises);
-
-    const results = actorResults.filter((actor) => actor.castMovies);
-    if (results.length === 0) {
-      const result = actorResults.pop();
-      throw new Error(result.errorMessage);
-    }
-
-    // Find actor's role for current title
-    results.forEach((actor) => {
-      // Find star's role in the title
-      const actorRole = state.title.actorList.find((actorItem) => {
-        return actorItem.id === actor.id;
+  async fetchCast({ commit, state }, { cast }) {
+    try {
+      const promises = cast.map(({id}) => {
+        const url = `${BASE_URL}/person/${id}?append_to_response=combined_credits&language=en-US`;
+        return fetch(url, {
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+          },
+        }).then((response) => response.json());
       });
-      if (actorRole) actor.asCharacter = actorRole.asCharacter;
-    });
+      const promiseResults = await Promise.allSettled(promises);
 
-    results.forEach((actor) => {
-      commit("setActor", { actor });
-    });
+      // Map the results to the cast's character name
+      const castResults = promiseResults.map((result, index) => {
+        if (result.status === "fulfilled") {
+          return {
+            character: cast[index]?.character || "",
+            ...result.value
+          };
+        } else { 
+          console.error(result.reason);
+          return null;
+        }
+      });
+
+      commit("setCast", { cast: castResults });
+    } catch (error) {
+      throw error;
+    }
   },
 
   resetTitlePage({ commit }) {
     commit("resetTitle");
-    commit("resetActors");
+    commit("resetCast");
   },
 
   resetSearchPage({ commit }) {
@@ -175,26 +139,17 @@ export const mutations = {
     Vue.set(state, "title", title);
   },
 
+  setCast(state, { cast }) {
+    const newCast = [...state.cast, ...cast];
+    Vue.set(state, "cast", newCast);
+  },
+
   setActor(state, { actor }) {
-    //Add roles property
-    actor.roles = actor.knownFor || [];
-    // If an actor has an asCharacter value keep it
-    if (state.actors[actor.id]) {
-      actor.asCharacter = state.actors[actor.id].asCharacter;
-    }
-
-    Vue.set(state.actors, actor.id, actor);
+    Vue.set(state, "actor", actor);
   },
 
-  addActorRoles(state, { actorId, roles }) {
-    // Append to roles property
-    const actor = state.actors[actorId];
-    const actorRoles = [...actor.roles, ...roles];
-    Vue.set(state.actors[actorId], "roles", actorRoles);
-  },
-
-  resetActors(state) {
-    Vue.set(state, "actors", {});
+  resetCast(state) {
+    Vue.set(state, "cast", []);
   },
 
   resetTitle(state) {
@@ -208,10 +163,15 @@ export const mutations = {
 
 // root getters
 export const getters = {
-  titles: (state) => Object.values(state.titles),
+  titles: (state) => {
+    const titles = Object.values(state.titles);
+    titles.sort((a, b) => {
+      return b.popularity - a.popularity;
+    });
+    return titles;
+  },
   title: (state) => state.title,
   titleById: (state) => (id) => state.titles[id],
   actor: (state) => state.actor,
-  actors: (state) => Object.values(state.actors),
-  actorById: (state) => (id) => state.actors[id],
+  cast: (state) => state.cast,
 };

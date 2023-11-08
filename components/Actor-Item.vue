@@ -1,19 +1,23 @@
 <template>
   <v-col cols="12">
     <div class="d-flex py-4 item-container">
-      <Poster :imageSrc="actor.image" :name="actor.name" :role="actor.asCharacter" @on-click="onClickActor(actor.id)"/>
+      <Poster
+        :posterPath="actor.profile_path"
+        :name="actor.name"
+        :role="actor.character"
+        @on-click="onClickActor(actor.id)"
+      />
       <v-divider dark vertical class="mx-2 primary" />
-      <Poster 
-        v-for="role in actor.roles" 
-        :key="role.id" 
-        :imageSrc="role.image" 
-        :name="role.title" 
-        :role="role.role"
-        @on-click="onClickTitle(role.id)"
+      <Poster
+        v-for="(role, index) in roles"
+        :key="`${actor.id}-${role.id}-${index}`"
+        :posterPath="role.poster_path"
+        :name="role.title"
+        :role="role.character"
+        @on-click="onClickTitle(role.id, role.credit_id)"
       />
       <div class="d-flex align-center">
-        <v-progress-circular v-if="isLoading" indeterminate color="primary"/>
-        <v-icon v-else large color="primary" @click="onAddRoles"> mdi-menu-right </v-icon>
+        <v-progress-circular v-if="hasNoRoles" indeterminate color="primary" />
       </div>
     </div>
 
@@ -21,9 +25,9 @@
   </v-col>
 </template>
 <script>
-import { mapActions } from "vuex";
+import { fetchCredit } from "../api";
 
-import Poster from './Poster.vue';
+import Poster from "./Poster.vue";
 
 export default {
   name: "ActorItem",
@@ -31,32 +35,38 @@ export default {
     actor: Object,
   },
   components: {
-    Poster
+    Poster,
   },
   data() {
     return {
-      isLoading: false
-    }
+      isLoading: false,
+    };
+  },
+  computed: {
+    roles() {
+      return this.actor?.combined_credits?.cast || [];
+    },
+    hasNoRoles() {
+      return this.actor?.combined_credits?.cast?.length === 0;
+    },
   },
   methods: {
-    ...mapActions(["fetchActorTitles"]),
     onClickActor(id) {
-      this.$router.push(`/actor/${id}`);
+      this.$router.push(`/person/${id}`);
     },
-    onClickTitle(id) {
-      this.$router.push(`/title/${id}`);
-    },
-    async onAddRoles() {
+    async onClickTitle(id, credit_id) {
       try {
-        this.isLoading = true;
-        await this.fetchActorTitles({actorId: this.actor.id});
-      } catch (err) {
-        console.log(err.message);
-        this.$emit("error", err.message);
-      } finally {
-        this.isLoading = false;
+        const credit = await fetchCredit(credit_id);
+
+        if (credit.media_type === "movie") {
+          this.$router.push(`/movie/${id}`);
+        } else if (credit.media_type === "tv") {
+          this.$router.push(`/tv/${id}`);
+        }
+      } catch (error) {
+        console.log(error);
       }
-    }
+    },
   },
 };
 </script>
@@ -66,4 +76,13 @@ export default {
   overflow-y: hidden;
 }
 
+::-webkit-scrollbar {
+  height: 0.75rem;
+  width: 0.75rem;
+  background: #000;
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: #fbc02d;
+  border-radius: 10px;
+}
 </style>
