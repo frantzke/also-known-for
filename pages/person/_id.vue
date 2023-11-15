@@ -82,7 +82,7 @@
               :posterPath="credit.poster_path"
               :name="credit.title"
               :role="credit.job"
-              @on-click="onClickTitle(role.id, role.credit_id)"
+              @on-click="onClickTitle(credit.id, credit.credit_id)"
             />
           </v-col>
         </v-row>
