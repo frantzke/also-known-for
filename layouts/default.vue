@@ -3,18 +3,45 @@
     <v-app-bar color="rgb(18,18,18)" fixed app>
       <div class="nav-bar-content">
         <div class="nav-bar-title">
-          <img src="AKF-Logo.ico" width="40" height="40" @click="onHome()"/>
+          <img src="AKF-Logo.ico" width="40" height="40" @click="onHome()" />
           <a
+            v-if="$vuetify.breakpoint.mdAndUp"
             color="primary"
             class="text-h6 font-weight-regular pl-4"
             @click="onHome()"
           >
             {{ title }}
           </a>
+          <div class="search-container">
+            <v-text-field
+              placeholder="Search Movies, TV Shows, and People"
+              v-model="searchText"
+              required
+              solo
+              hide-details="auto"
+              color="secondary"
+              class="pa-2"
+              @click="isExpanded = true"
+              @keyup.enter="onSearch"
+              @input="onKeyType"
+            />
+            <div
+              v-if="isExpanded"
+              class="d-flex flex-column secondary expand-container"
+            >
+              <v-skeleton-loader v-if="isLoading" type="list-item-three-line" />
+              <TitleItem
+                v-for="title in titles"
+                :key="title.id"
+                :title="title"
+                @item-clicked="isExpanded = false"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </v-app-bar>
-    <v-main>
+    <v-main ref="main">
       <v-container class="main-container">
         <Nuxt />
       </v-container>
@@ -23,16 +50,72 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
+
+import TitleItem from "../components/Title-Item.vue";
+
 export default {
   name: "DefaultLayout",
+  components: {
+    TitleItem,
+  },
   data() {
     return {
       title: "Also Known For",
+      isExpanded: false,
+      isLoading: false,
+      searchText: "",
+      hasError: false,
+      errorMsg: "",
+      debounceTimeout: null,
     };
   },
+  computed: {
+    ...mapGetters(["titles"]),
+  },
+  mounted() {
+    this.attachClickEventToMain();
+  },
   methods: {
+    ...mapActions(["searchTitles", "resetSearchPage"]),
+    attachClickEventToMain() {
+      // Attach onclick to close the search menu when clicking outside of it
+      console.log("Attach OnClick")
+      const mainElement = this.$refs.main.$el;
+      if (mainElement) {
+        mainElement.addEventListener("click", () => {
+          this.isExpanded = false;
+        });
+      }
+    },
     onHome() {
       this.$router.push(`/`);
+    },
+    onKeyType(text) {
+      this.isExpanded = true;
+      this.isLoading = true;
+      this.resetSearchPage();
+      clearTimeout(this.debounceTimeout);
+      this.debounceTimeout = setTimeout(() => {
+        this.onSearch();
+      }, 500);
+    },
+    async onSearch() {
+      if (this.searchText === "") {
+        this.isLoading = false;
+        return;
+      }
+
+      try {
+        this.hasError = false;
+        this.isLoading = true;
+        await this.searchTitles({ searchText: this.searchText });
+      } catch (err) {
+        this.hasError = true;
+        this.errorMsg = err.message;
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 };
@@ -56,5 +139,20 @@ export default {
 
 .main-container {
   max-width: 1280px !important;
+}
+
+.search-container {
+  position: relative;
+  flex: 1 1 auto;
+  max-width: 640px;
+}
+
+.expand-container {
+  position: absolute;
+  z-index: 8;
+  width: 100%;
+  max-width: 624px;
+  top: 56px;
+  left: 8px;
 }
 </style>

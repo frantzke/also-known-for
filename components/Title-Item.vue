@@ -60,6 +60,7 @@ export default {
       } else if (mediaType === "person") {
         this.$router.push(`/person/${id}`);
       }
+      this.$emit('item-clicked');
     },
   },
 };
