@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="d-flex">
+    <!-- <div class="d-flex">
       <v-text-field
         placeholder="Search Movies and TV Shows"
         v-model="searchText"
@@ -29,9 +29,20 @@
         class="mx-auto py-4"
         type="list-item-three-line"
       />
-    </div>
+    </div> -->
 
-    <TitleItem v-for="title in titles" :key="title.id" :title="title" />
+    <h1 class="text-h1 text-center font-weight-light">
+      This space will be filled with home page content.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+      commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+      velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+      cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
+      est laborum.
+    </h1>
+
+    <!-- <TitleItem v-for="title in titles" :key="title.id" :title="title" /> -->
   </v-container>
 </template>
 
