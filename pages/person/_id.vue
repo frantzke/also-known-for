@@ -48,13 +48,13 @@
         <v-row>
           <v-col
             v-for="role in roles"
+            :key="role.id"
             class="d-flex child-flex"
             lg="2"
             md="3"
             sm="4"
           >
             <Poster
-              :key="role.id"
               :posterPath="role.poster_path"
               :name="role.title"
               :role="role.character"
@@ -72,13 +72,13 @@
         <v-row>
           <v-col
             v-for="credit in crew"
+            :key="credit.id"
             class="d-flex child-flex"
             lg="2"
             md="3"
             sm="4"
           >
             <Poster
-              :key="credit.id"
               :posterPath="credit.poster_path"
               :name="credit.title"
               :role="credit.job"

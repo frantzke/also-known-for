@@ -26,6 +26,7 @@
           <v-divider dark class="my-2" />
           <v-chip
             v-for="genre in genres"
+            :key="genre"
             outlined
             dark
             color="primary"

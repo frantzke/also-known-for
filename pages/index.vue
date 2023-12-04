@@ -1,87 +1,112 @@
 <template>
   <v-container>
-    <!-- <div class="d-flex">
-      <v-text-field
-        placeholder="Search Movies and TV Shows"
-        v-model="searchText"
-        required
-        solo
-        @keyup.enter="onSearch"
-      />
-      <v-btn
-        large
-        color="primary"
-        class="search-btn black--text ml-4"
-        :loading="isLoading"
-        @click="onSearch"
-      >
-        Search
-      </v-btn>
-    </div>
-
     <div v-if="hasError">
       <h4 class="text-h4 text-center font-weight-light">{{ errorMsg }} 😖</h4>
     </div>
 
-    <div v-if="isLoading">
-      <v-skeleton-loader
-        v-for="i in 6"
-        class="mx-auto py-4"
-        type="list-item-three-line"
-      />
-    </div> -->
-
-    <h1 class="text-h1 text-center font-weight-light">
-      This space will be filled with home page content.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-      commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-      velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-      cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
-      est laborum.
-    </h1>
-
-    <!-- <TitleItem v-for="title in titles" :key="title.id" :title="title" /> -->
+    <TitleList
+      header="Trending"
+      subheader="Trending this week"
+      :titles="trending"
+    />
+    <TitleList
+      header="Now Playing"
+      subheader="Movies currently playing in theaters"
+      mediaType="movie"
+      :titles="playing"
+    />
+    <TitleList
+      header="Popular"
+      subheader="Movies by popularity"
+      mediaType="movie"
+      :titles="popular"
+    />
+    <TitleList
+      header="Upcoming"
+      subheader="Upcoming Movies"
+      mediaType="movie"
+      :titles="upcoming"
+    />
+    <TitleList
+      header="Top TV"
+      subheader="Top Rated TV"
+      mediaType="tv"
+      :titles="topTV"
+    />
+    <TitleList
+      header="Popular People"
+      subheader="People by popularity"
+      mediaType="person"
+      :titles="popularPeople"
+    />
   </v-container>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
 
+import TitleList from "../components/Title-List.vue";
 import TitleItem from "../components/Title-Item.vue";
 
 export default {
   name: "IndexPage",
   components: {
     TitleItem,
+    TitleList,
   },
   data: () => ({
     isLoading: false,
     searchText: "",
     hasError: false,
     errorMsg: "",
+    upcoming: [],
+    popular: [],
+    trending: [],
+    playing: [],
+    topTV: [],
+    popularPeople: [],
   }),
   computed: {
-    ...mapGetters(["titles"]),
+    ...mapGetters(["listByName"]),
+  },
+  created() {
+    this.init();
   },
   methods: {
-    ...mapActions(["searchTitles", "resetSearchPage"]),
-    init() {
-      this.resetSearchPage();
-    },
-    async onSearch() {
-      if (this.searchText === "") {
-        this.hasError = true;
-        this.errorMsg = "Please provide a search!";
-        return;
-      }
-
+    ...mapActions(["fetchList"]),
+    async init() {
       try {
-        this.hasError = false;
         this.isLoading = true;
-        this.resetSearchPage();
-        await this.searchTitles({ searchText: this.searchText });
+        await this.fetchList({
+          listName: "popular",
+          apiPath: "/movie/popular",
+        });
+        this.popular = this.listByName("popular");
+        await this.fetchList({
+          listName: "trending",
+          apiPath: "/trending/all/week",
+        });
+        this.trending = this.listByName("trending");
+        await this.fetchList({
+          listName: "playing",
+          apiPath: "/movie/now_playing",
+        });
+        this.playing = this.listByName("playing");
+        await this.fetchList({
+          listName: "upcoming",
+          apiPath: "/movie/upcoming",
+        });
+        this.upcoming = this.listByName("upcoming");
+        await this.fetchList({
+          listName: "topTV",
+          apiPath: "/tv/top_rated",
+        });
+        this.topTV = this.listByName("topTV");
+        await this.fetchList({
+          listName: "popularPeople",
+          apiPath: "/person/popular",
+        });
+        this.popularPeople = this.listByName("popularPeople");
       } catch (err) {
         this.hasError = true;
         this.errorMsg = err.message;
