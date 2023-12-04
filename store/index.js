@@ -85,7 +85,7 @@ export const actions = {
 
   async fetchCast({ commit, state }, { cast }) {
     try {
-      const promises = cast.map(({id}) => {
+      const promises = cast.map(({ id }) => {
         const url = `${BASE_URL}/person/${id}?append_to_response=combined_credits&language=en-US`;
         return fetch(url, {
           headers: {
@@ -100,9 +100,9 @@ export const actions = {
         if (result.status === "fulfilled") {
           return {
             character: cast[index]?.character || "",
-            ...result.value
+            ...result.value,
           };
-        } else { 
+        } else {
           console.error(result.reason);
           return null;
         }
@@ -110,6 +110,30 @@ export const actions = {
 
       commit("setCast", { cast: castResults });
     } catch (error) {
+      throw error;
+    }
+  },
+
+  // Fetches a list of titles from the API
+  async fetchList({commit}, { listName, apiPath }) {
+    try {
+      if (!BASE_URL || !API_KEY) throw new Error("API Key Missing");
+      const url = `${BASE_URL}${apiPath}?language=en-US`;
+      const data = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+        },
+      }).then((response) => response.json());
+
+      const { results } = data;
+
+      if (!results) {
+        throw Error(`Fetching ${listName} failed`);
+      }
+
+      commit("setList", { listName, results });
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   },
@@ -148,6 +172,10 @@ export const mutations = {
     Vue.set(state, "actor", actor);
   },
 
+  setList(state, { listName, results }) {
+    Vue.set(state, listName, results);
+  },
+
   resetCast(state) {
     Vue.set(state, "cast", []);
   },
@@ -174,4 +202,5 @@ export const getters = {
   titleById: (state) => (id) => state.titles[id],
   actor: (state) => state.actor,
   cast: (state) => state.cast,
+  listByName: (state) => (listName) => state[listName],
 };
