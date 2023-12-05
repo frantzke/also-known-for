@@ -39,7 +39,6 @@
     </v-container>
 
     <div v-if="!hasError">
-
       <v-divider dark class="my-4 primary" />
 
       <h4 class="mb-2 text-h4 font-weight-light">Cast Credits</h4>
@@ -56,7 +55,7 @@
           >
             <Poster
               :posterPath="role.poster_path"
-              :name="role.title"
+              :name="getName(role)"
               :role="role.character"
               @on-click="onClickTitle(role.id, role.credit_id)"
             />
@@ -80,14 +79,13 @@
           >
             <Poster
               :posterPath="credit.poster_path"
-              :name="credit.title"
+              :name="getName(credit)"
               :role="credit.job"
               @on-click="onClickTitle(credit.id, credit.credit_id)"
             />
           </v-col>
         </v-row>
       </v-container>
-
     </div>
   </v-container>
 </template>
@@ -123,7 +121,40 @@ export default {
       }
     },
     roles() {
-      return this?.actor?.combined_credits?.cast || [];
+      if (!this.actor?.combined_credits?.cast) return [];
+      const castCopy = [...this.actor.combined_credits.cast];
+      //TODO: Come up with a better way to sort
+      // const sortedRoles = castCopy.sort((a, b) => {
+      //   let rankA = a.popularity + a.vote_count; //* (a.order || 1);
+      //   let rankB = b.popularity + a.vote_count; //* (b.order || 1);
+
+      //   // Use regex to see if a.character contains "Self"
+      //   // If so, give it a lower rank
+      //   const selfRegex = /self/i;
+
+      //   if (
+      //     (selfRegex.test(a.character) || a.character === "") &&
+      //     a.media_type === "tv"
+      //   ) {
+      //     rankA = Math.round(a.popularity / 3);
+      //   }
+      //   if (
+      //     (selfRegex.test(b.character) || b.character === "") &&
+      //     b.media_type === "tv"
+      //   ) {
+      //     rankB = Math.round(b.popularity / 3);
+      //   }
+      //   return rankB - rankA;
+      // });
+      // const sortedRoles = castCopy.sort((a, b) => {
+      //TODO: If order is undefined put it at the end of the list
+      //TODO: Sort by order and popularity if order is the same
+      //   let orderA = a.order || 1000;
+      //   let orderB = b.order || 1000;
+      //   return orderB - orderA;
+      // });
+
+      return castCopy;
     },
     crew() {
       const crew = this?.actor?.combined_credits?.crew || [];
@@ -148,6 +179,9 @@ export default {
         this.hasError = true;
         this.errorMsg = err.message;
       }
+    },
+    getName(title) {
+      return title.title || title.name;
     },
     async onClickTitle(id, credit_id) {
       const credit = await fetchCredit(credit_id);
